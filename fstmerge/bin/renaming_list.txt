@@ -1,0 +1,5 @@
+C:\Users\Guilherme\Desktop\rename\rev.revisions:Member.java:soma(int-int-int-int)
+C:\Users\Guilherme\Desktop\rename2\rev.revisions:Member.java:soma(int-int-int-int)
+C:\Users\Guilherme\Desktop\rename2\rev.revisions:Member.java:soma(int-int-int-int)
+C:\Users\Guilherme\Desktop\rename2\rev.revisions:Member.java:soma(int-int-int-int)
+C:\Users\Guilherme\Desktop\rename2\rev.revisions:Member.java:soma(int-int-int-int)

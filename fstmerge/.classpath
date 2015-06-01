@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="evaluation/|examples/|run_configurations/|scripts/" kind="src" path=""/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fstcomp"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/CIDE_generateAST"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/CIDE2_ast"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fstgen"/>
+	<classpathentry kind="lib" path="C:/Users/Guilherme/.m2/repository/commons-io/commons-io/2.0.1/commons-io-2.0.1.jar">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="maven.groupId" value="commons-io"/>
+			<attribute name="maven.artifactId" value="commons-io"/>
+			<attribute name="maven.version" value="2.0.1"/>
+			<attribute name="maven.scope" value="compile"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
