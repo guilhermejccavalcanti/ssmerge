@@ -9,8 +9,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import util.Util;
 import modification.traversalLanguageParser.addressManagement.DuplicateFreeLinkedList;
+import util.Util;
+import de.ovgu.cide.fstgen.ast.FSTNode;
 import de.ovgu.cide.fstgen.ast.FSTTerminal;
 
 public class LineBasedMerger implements MergerInterface {
@@ -31,6 +32,7 @@ public class LineBasedMerger implements MergerInterface {
 	static final int RIGHT_CONTENT 	= 2;
 
 
+	@SuppressWarnings("static-access")
 	public void merge(FSTTerminal node) throws ContentMergeException {
 
 		String body = node.getBody() + " ";
@@ -108,7 +110,7 @@ public class LineBasedMerger implements MergerInterface {
 
 			String mergeCmd = ""; 
 			if(System.getProperty("os.name").contains("Windows"))
-				mergeCmd = "C:/Program Files/KDiff3/bin/diff3.exe -m -E " + "\"" + fileVar1.getPath() + "\"" + " " + "\"" + fileBase.getPath() + "\"" + " " + "\"" + fileVar2.getPath() + "\"";// + " > " + fileVar1.getName() + "_output";
+				mergeCmd = "C:/KDiff3/bin/diff3.exe -m -E " + "\"" + fileVar1.getPath() + "\"" + " " + "\"" + fileBase.getPath() + "\"" + " " + "\"" + fileVar2.getPath() + "\"";// + " > " + fileVar1.getName() + "_output";
 			else
 				mergeCmd = "merge -q -p " + fileVar1.getPath() + " " + fileBase.getPath() + " " + fileVar2.getPath();// + " > " + fileVar1.getName() + "_output";
 			Runtime run = Runtime.getRuntime();
@@ -169,9 +171,9 @@ public class LineBasedMerger implements MergerInterface {
 					this.countOfPossibleRenames++;
 
 
-					String methodName = this.getMethodName(node);
-					if(!methodName.equals("")){
-						this.listRenames.add(currentRevision+":"+ currentFile+":"+methodName);
+					String methodSignature = this.getMethodSignature(node);
+					if(!methodSignature.equals("")){
+						this.listRenames.add(this.getMergedFolder()+";"+ this.getFileAbsolutePath(node)+";"+methodSignature);
 					}
 
 
@@ -186,8 +188,7 @@ public class LineBasedMerger implements MergerInterface {
 						}
 					}
 				} else {//SOLVING CONFLICT FOR BUILD PURPOSES
-					String methodStub = Util.generateMethodStub(tokens[LineBasedMerger.BASE_CONTENT]);
-					node.setBody(methodStub);
+					node.setBody(Util.generateMultipleMethodBody(node.getBody()));
 				}
 			}
 		}
@@ -213,15 +214,39 @@ public class LineBasedMerger implements MergerInterface {
 	}
 
 	//RENAMING ISSUE
-	private String getMethodName(FSTTerminal node){
-		String methodName = "";
+	private String getMethodSignature(FSTTerminal node){
+		String methodSignarute = "";
 		if( node.getType().contains("MethodDecl")|| 
 				node.getType().contains("FunctionDefinition") ||
 				node.getType().contains("classsmall_stmt1") ||
 				node.getType().contains("class_member_declarationEnd6")){
 
-			methodName = node.getName();
+			methodSignarute = node.getName();
 		}
-		return methodName;
+		return Util.simplifyMethodSignature(methodSignarute);
 	}
+
+	//RENAMING ISSUE
+	private String getFileAbsolutePath(FSTTerminal node) {
+		return this.getFilePath(node)+"/"+(currentFile.split("\\."))[0];
+	}
+	
+	//RENAMING ISSUE
+	private String getFilePath(FSTNode node){
+		String dir = "";
+		if(node == null){
+		} else 	if(node.getType().equals("Folder")){
+			dir = getFilePath(node.getParent()) + "/" + node.getName();
+		} else {
+			dir = getFilePath(node.getParent()) + dir;
+		}
+		return dir;
+	}
+	
+	//RENAMING ISSUE
+	private String getMergedFolder() {
+		return ((currentRevision.split("\\."))[0]).replace("\\", "/");
+	}
+
 }
+

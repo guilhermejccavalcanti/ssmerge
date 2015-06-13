@@ -1,10 +1,12 @@
 package util;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -26,6 +28,28 @@ public class Util {
 		return methodStub;
 	}
 
+	public static String generateMultipleMethodBody(String oldBody) {
+		String newBody = "";
+		try {
+			BufferedReader buffer 	= new BufferedReader(new StringReader(oldBody));
+			String currentLine 		= "";
+			while ((currentLine=buffer.readLine())!=null) {
+				if(currentLine.contains("<<<<<<<") && !currentLine.contains("//") && !currentLine.contains("/*")){
+					String tempVar = "var"+System.currentTimeMillis();
+					currentLine = "int "+ tempVar + " = 0;\nif("+tempVar+"=="+tempVar+"){";
+				} else if(currentLine.equals("=======")){
+					currentLine = "}else{";
+				} else if(currentLine.contains(">>>>>>>") && !currentLine.contains("//") && !currentLine.contains("/*")){
+					currentLine ="}";
+				}
+				newBody+=currentLine+"\n";
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return newBody;
+	}
+
 	public static void generateJarFile(String srcDirectory){
 		try{
 			Manifest manifest = new Manifest();
@@ -36,6 +60,50 @@ public class Util {
 		} catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+
+
+	public static String simplifyMethodSignature(String signature){
+		String simplifiedMethodSignature = "";
+		String firstPart = "";
+		String parameters= "";
+		String lastPart  = "";
+		String aux 		 = "";
+		
+		signature = signature.replaceAll("\\s+","");
+
+		for (int i = 0, n = signature.length(); i < n; i++) {
+			char chr = signature.charAt(i);
+			if (chr == '('){
+				aux = signature.substring(i+1,signature.length());
+				firstPart+="(";
+				break;
+			}else
+				firstPart += chr;
+		}
+		for (int i = 0, n = aux.length(); i < n; i++) {
+			char chr = aux.charAt(i);
+			if (chr == ')'){
+				lastPart = aux.substring(i,aux.length());
+				break;
+			}else
+				parameters += chr;
+		}
+
+		simplifiedMethodSignature = firstPart + normalizeParameters(parameters) + lastPart;
+		return simplifiedMethodSignature;
+	}
+
+	private static String normalizeParameters(String parameters){
+		String normalizedParameters = "";
+		String[] strs = parameters.split("-");
+		for(int i = 0; i < strs.length; i++){
+			if(i % 2 == 0){
+				normalizedParameters+=(strs[i]+",");
+			}
+		}
+		normalizedParameters = (normalizedParameters.substring(0,normalizedParameters.length()-1)) + "";
+		return normalizedParameters;
 	}
 
 	private static void addFilesToJar(File source, JarOutputStream target) throws IOException {
@@ -182,6 +250,9 @@ public class Util {
 	}
 
 	public static void main(String[] args) {
+
+		simplifyMethodSignature("soma(int-int-int-int) throws Execeptionption");
+
 		// String str ="public int soma(int a, int c) throws Exception {";
 		String str = "<T, S extends T> int copy(List<T> dest, List<S> src) {";
 		// PEGANDO A ASSINATURA DO MÉTODO
@@ -191,8 +262,9 @@ public class Util {
 		System.out.println(methodSignature);
 		System.out.println(removeGenerics(methodSignature));
 		System.out.println(generateMethodStub(str));
-		
+
 		generateJarFile("C:\\GGTS\\workspace\\ASM_TesteCaller");
+
 	}
 
 }

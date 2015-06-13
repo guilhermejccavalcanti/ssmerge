@@ -253,7 +253,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 
 			FSTGenMerger merger = new FSTGenMerger();
-			String file 	= "C:\\Users\\Guilherme\\Desktop\\rename2\\rev.revisions";
+			String file 	= "C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\rename\\rev.revisions";
 			String files[] 	= {"--expression",file};
 			merger.run(files);
 
@@ -561,7 +561,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 	
 	//RENAMING ISSUE
 	private void printListOfRenamings() throws IOException {
-		File file = new File( "renaming_list.txt" );
+		File file = new File( "renaming_list.csv" );
 		FileWriter fw = new FileWriter(file, true);
 		BufferedWriter bw = new BufferedWriter( fw );
 		for(String e : this.mergeVisitor.getLineBasedMerger().listRenames){
