@@ -5,8 +5,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -28,26 +28,36 @@ public class Util {
 		return methodStub;
 	}
 
-	public static String generateMultipleMethodBody(String oldBody) {
+	public static String generateMultipleMethodBody(String left, String base, String right) {
 		String newBody = "";
-		try {
-			BufferedReader buffer 	= new BufferedReader(new StringReader(oldBody));
-			String currentLine 		= "";
-			while ((currentLine=buffer.readLine())!=null) {
-				if(currentLine.contains("<<<<<<<") && !currentLine.contains("//") && !currentLine.contains("/*")){
-					String tempVar = "var"+System.currentTimeMillis();
-					currentLine = "int "+ tempVar + " = 0;\nif("+tempVar+"=="+tempVar+"){";
-				} else if(currentLine.equals("=======")){
-					currentLine = "}else{";
-				} else if(currentLine.contains(">>>>>>>") && !currentLine.contains("//") && !currentLine.contains("/*")){
-					currentLine ="}";
-				}
-				newBody+=currentLine+"\n";
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		String tempVar = "var"+System.currentTimeMillis();
+		newBody += getMethodSignature(base);
+		newBody += "\n";
+		newBody += "int "+ tempVar + " = 0;\nif("+tempVar+"=="+tempVar+"){\n";
+		newBody += getMethodBody(left);
+		newBody += "}else{\n";
+		newBody += getMethodBody(right);
+		newBody += "}\n}";
 		return newBody;
+
+
+		//		try {
+		//			BufferedReader buffer 	= new BufferedReader(new StringReader(oldBody));
+		//			String currentLine 		= "";
+		//			while ((currentLine=buffer.readLine())!=null) {
+		//				if(currentLine.contains("<<<<<<<") && !currentLine.contains("//") && !currentLine.contains("/*")){
+		//					String tempVar = "var"+System.currentTimeMillis();
+		//					currentLine = "int "+ tempVar + " = 0;\nif("+tempVar+"=="+tempVar+"){";
+		//				} else if(currentLine.equals("=======")){
+		//					currentLine = "}else{";
+		//				} else if(currentLine.contains(">>>>>>>") && !currentLine.contains("//") && !currentLine.contains("/*")){
+		//					currentLine ="}";
+		//				}
+		//				newBody+=currentLine+"\n";
+		//			}
+		//		} catch (IOException e) {
+		//			e.printStackTrace();
+		//		}
 	}
 
 	public static void generateJarFile(String srcDirectory){
@@ -69,7 +79,7 @@ public class Util {
 		String parameters= "";
 		String lastPart  = "";
 		String aux 		 = "";
-		
+
 		signature = signature.replaceAll("\\s+","");
 
 		for (int i = 0, n = signature.length(); i < n; i++) {
@@ -91,7 +101,53 @@ public class Util {
 		}
 
 		simplifiedMethodSignature = firstPart + normalizeParameters(parameters) + lastPart;
+		simplifiedMethodSignature = simplifiedMethodSignature.replace("{FormalParametersInternal}", "");
 		return simplifiedMethodSignature;
+	}
+
+	public static String getMethodBody(String methodSource){
+		String methodBody = "";
+		String aux 		 = "";
+		for (int i = 0, n = methodSource.length(); i < n; i++) {
+			char chr = methodSource.charAt(i);
+			if (chr == '{'){
+				aux = methodSource.substring(i+1,methodSource.length());
+				break;
+			}
+		}
+		int ind = aux.lastIndexOf("}");
+		methodBody = new StringBuilder(aux).replace(ind, ind+1,"").toString();
+		return methodBody;
+	}
+
+	public static boolean isFilesContentEqual(String filePathLeft, String filePathBase, String filePathRight ){
+		String leftContent 	= getFileContents(filePathLeft);
+		String baseContent 	= getFileContents(filePathBase);
+		String rightContent = getFileContents(filePathRight);
+
+		leftContent = (leftContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+		baseContent = (baseContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+		rightContent = (rightContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+
+		return (leftContent.equals(baseContent) && rightContent.equals(baseContent));
+	}
+
+	private static String getFileContents(String filePath){
+		String content = "";
+		try {
+			StringBuilder fileData = new StringBuilder(1000);
+			BufferedReader reader = new BufferedReader(new FileReader(filePath));
+			char[] buf = new char[10];
+			int numRead = 0;
+			while ((numRead = reader.read(buf)) != -1) {
+				String readData = String.valueOf(buf, 0, numRead);
+				fileData.append(readData);
+				buf = new char[1024];
+			}
+			reader.close();
+			content = fileData.toString();	
+		} catch (IOException e) {return content;} 
+		return content;
 	}
 
 	private static String normalizeParameters(String parameters){
@@ -250,6 +306,10 @@ public class Util {
 	}
 
 	public static void main(String[] args) {
+		
+		isFilesContentEqual("C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils.java", "C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils1.java", "C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils2.java");
+
+		getMethodBody("public int soma(int a, int b, int c){   int result = a + b + c;   return result;  }");
 
 		simplifyMethodSignature("soma(int-int-int-int) throws Execeptionption");
 

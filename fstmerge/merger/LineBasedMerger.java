@@ -12,6 +12,7 @@ import java.util.List;
 import modification.traversalLanguageParser.addressManagement.DuplicateFreeLinkedList;
 import util.Util;
 import de.ovgu.cide.fstgen.ast.FSTNode;
+import de.ovgu.cide.fstgen.ast.FSTNonTerminal;
 import de.ovgu.cide.fstgen.ast.FSTTerminal;
 
 public class LineBasedMerger implements MergerInterface {
@@ -165,32 +166,50 @@ public class LineBasedMerger implements MergerInterface {
 				node.getType().contains("classsmall_stmt1") ||
 				node.getType().contains("class_member_declarationEnd6")){
 			if(isFileAllowed()){
-				if(		(tokens[0].isEmpty() && !tokens[1].isEmpty() && !tokens[2].isEmpty()) ||
-						(!tokens[0].isEmpty() && tokens[1].isEmpty() && !tokens[2].isEmpty()) ||
-						(!tokens[0].isEmpty() && !tokens[1].isEmpty() && tokens[2].isEmpty())	){
+				if(		( tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && !tokens[LineBasedMerger.BASE_CONTENT].isEmpty() && !tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()) ||
+						(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() &&  tokens[LineBasedMerger.BASE_CONTENT].isEmpty() && !tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()) ||
+						(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && !tokens[LineBasedMerger.BASE_CONTENT].isEmpty() &&  tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty())	){
 					this.countOfPossibleRenames++;
-
-
 					String methodSignature = this.getMethodSignature(node);
 					if(!methodSignature.equals("")){
 						this.listRenames.add(this.getMergedFolder()+";"+ this.getFileAbsolutePath(node)+";"+methodSignature);
 					}
 
-
+					
 					//SOLVING CONFLICT FOR BUILD PURPOSES
 					if(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty()){
-						String methodStub = Util.generateMethodStub(tokens[LineBasedMerger.LEFT_CONTENT]);
+						String methodStub = "";
+						if(belongsToInterface(node)){
+							methodStub = tokens[LineBasedMerger.LEFT_CONTENT];
+						} else {
+							methodStub = Util.generateMethodStub(tokens[LineBasedMerger.LEFT_CONTENT]);
+						}
 						node.setBody(methodStub);
 					}else{ 
 						if (!tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()){
-							String methodStub = Util.generateMethodStub(tokens[LineBasedMerger.RIGHT_CONTENT]);
+							String methodStub ="";
+							if(belongsToInterface(node)){
+								methodStub = tokens[LineBasedMerger.RIGHT_CONTENT];
+							} else {
+								methodStub = Util.generateMethodStub(tokens[LineBasedMerger.RIGHT_CONTENT]);
+							}
 							node.setBody(methodStub);
 						}
 					}
 				} else {//SOLVING CONFLICT FOR BUILD PURPOSES
-					node.setBody(Util.generateMultipleMethodBody(node.getBody()));
+					node.setBody(Util.generateMultipleMethodBody(tokens[LineBasedMerger.LEFT_CONTENT], tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.RIGHT_CONTENT]));
 				}
 			}
+		}
+	}
+
+	private boolean belongsToInterface(FSTTerminal node) {
+		try{
+			FSTNonTerminal parent = node.getParent();
+			FSTTerminal son = (FSTTerminal) parent.getChildren().get(1);
+			return son.getBody().contains("interface");
+		} catch(NullPointerException E){
+			return false;
 		}
 	}
 
@@ -228,24 +247,26 @@ public class LineBasedMerger implements MergerInterface {
 
 	//RENAMING ISSUE
 	private String getFileAbsolutePath(FSTTerminal node) {
-		return this.getFilePath(node)+"/"+(currentFile.split("\\."))[0];
+		//return (this.getFilePath(node)+File.separator+(currentFile.split("\\.")[0])).replaceFirst((File.separator), "");
+		return (this.getFilePath(node)+File.separator+(currentFile.split("\\.")[0]));
 	}
-	
+
 	//RENAMING ISSUE
 	private String getFilePath(FSTNode node){
 		String dir = "";
 		if(node == null){
 		} else 	if(node.getType().equals("Folder")){
-			dir = getFilePath(node.getParent()) + "/" + node.getName();
+			dir = getFilePath(node.getParent()) + File.separator + node.getName();
 		} else {
 			dir = getFilePath(node.getParent()) + dir;
 		}
 		return dir;
 	}
-	
+
 	//RENAMING ISSUE
 	private String getMergedFolder() {
-		return ((currentRevision.split("\\."))[0]).replace("\\", "/");
+		//return ((currentRevision.split("\\."))[0]).replace("\\", "/");
+		return ((currentRevision.split("\\."))[0]);
 	}
 
 }
