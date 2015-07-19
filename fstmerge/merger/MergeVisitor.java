@@ -55,31 +55,6 @@ public class MergeVisitor {
 		}
 	}
 
-	//	//IMPORT ISSUE
-	//	public void findJavaFilesFSTNodes(FSTNode current, LinkedList<FSTNonTerminal> javaFiles) {
-	//		if(current instanceof FSTNonTerminal) {
-	//			if("Java-File".equals(current.getType())){
-	//				javaFiles.add((FSTNonTerminal)current);
-	//			}
-	//			for(FSTNode child : ((FSTNonTerminal)current).getChildren())
-	//				findJavaFilesFSTNodes(child,javaFiles);
-	//		} 
-	//	}
-	//
-	//	//IMPORT ISSUE
-	//	public void findImportDeclarations(FSTNode javaFile, LinkedList<String> importDeclarations) {
-	//		if(javaFile instanceof FSTNonTerminal) {
-	//			for(FSTNode child : ((FSTNonTerminal)javaFile).getChildren())
-	//				findImportDeclarations(child,importDeclarations);
-	//		} else if(javaFile instanceof FSTTerminal) {
-	//			if("ImportDeclaration".equals(javaFile.getType())){
-	//				importDeclarations.add(((FSTTerminal) javaFile).getBody());
-	//			}
-	//		}
-	//	}
-	//
-	
-	
 	//RENAMING ISSUE
 	public LineBasedMerger getLineBasedMerger() {
 		return lineBasedMerger;

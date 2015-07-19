@@ -13,8 +13,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.regex.Pattern;
 
 import modification.traversalLanguageParser.addressManagement.DuplicateFreeLinkedList;
 
@@ -30,6 +28,7 @@ import printer.javam.JavaMergePrintVisitor;
 import printer.pythonm.PythonMergePrintVisitor;
 import printer.textm.TextMergePrintVisitor;
 import util.DiffMerged;
+import util.FPFNCandidates;
 import util.Util;
 import builder.ArtifactBuilderInterface;
 import builder.csharp.CSharpBuilder;
@@ -44,7 +43,6 @@ import de.ovgu.cide.fstgen.ast.FSTNode;
 import de.ovgu.cide.fstgen.ast.FSTNonTerminal;
 import de.ovgu.cide.fstgen.ast.FSTTerminal;
 
-
 public class FSTGenMerger extends FSTGenProcessor {
 
 	static final String MERGE_SEPARATOR 		 = "##FSTMerge##";
@@ -53,17 +51,15 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 	private MergeVisitor mergeVisitor = new MergeVisitor();
 
-	//IMPORT ISSUE
-	//	private int falseNegativeImports 	= 0;
-	//	private int totalImports 			= 0;
-
 	//IMPORT ISSUE NEW
 	private static LinkedList<String> importsFromBase  = new LinkedList<String>();
 	private static LinkedList<String> importsFromRight = new LinkedList<String>();
 	private static LinkedList<String> importsFromLeft  = new LinkedList<String>();
 	private static String currentMergedClass;
 	private static String currentMergedRevisionFilePath;
-
+	
+	//DUPLICATED METHOD ISSUE
+	private static ArrayList<String> duplicatedMethods =  new ArrayList<String>();
 
 	public FSTGenMerger() {
 		super();
@@ -114,8 +110,40 @@ public class FSTGenMerger extends FSTGenProcessor {
 				+ "                    [-b, --base-directory] [-p, --preprocess-files] \n"
 				+ "                    <-e, --expression>|<-f, --filemerge> myfile parentfile yourfile \n");
 	}
+	
+	public FPFNCandidates run(String revisionFile) {
+		try {
+			FSTGenMerger merger = new FSTGenMerger();
+			currentMergedRevisionFilePath = revisionFile;
+			String files[] 		= {"--expression",revisionFile};
 
-	public void run(String[] args) {
+			long t0 = System.currentTimeMillis();
+
+			merger.ignoreEqualFiles(revisionFile);
+			
+			FPFNCandidates candidates = merger.run(files);
+			
+			Util.countConflicts(revisionFile);
+			
+			merger.restoreEqualFiles(revisionFile);
+
+			long tf = System.currentTimeMillis();
+			System.out.println("merge time: " + ((tf-t0)/60000) + " minutes");
+
+			return candidates;
+			
+		} catch (RuntimeException ru){
+			ru.printStackTrace();
+			System.err.println(ru.toString());
+			deleteRevision();
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+		return null;
+	}
+
+	public FPFNCandidates run(String[] args) throws RuntimeException {
 		// configuration options
 		CmdLineParser cmdparser = new CmdLineParser();
 		CmdLineParser.Option outputdir = cmdparser.addStringOption('o',
@@ -158,9 +186,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 		Boolean quietval = (Boolean) cmdparser.getOptionValue(quiet,
 				Boolean.FALSE);
 
-		//IMPORT ISSUE
-		//LinkedList<FSTNonTerminal> javaFiles = new LinkedList<FSTNonTerminal>();
-
 		try {
 
 			List<ArtifactBuilderInterface> buildersAccepted = new ArrayList<ArtifactBuilderInterface>();
@@ -193,13 +218,9 @@ public class FSTGenMerger extends FSTGenProcessor {
 				if (features.size() != 0) {
 					merged = merge(features);
 
-					//IMPORT ISSUE
-					//mergeVisitor.findJavaFilesFSTNodes(merged, javaFiles);
-
 					//RENAMING ISSUE
 					mergeVisitor.setErrorFiles(fileLoader.getComposer().getErrorFiles());
 					mergeVisitor.setCurrentRevision(expressionval);
-
 
 					mergeVisitor.visit(merged);
 
@@ -216,20 +237,23 @@ public class FSTGenMerger extends FSTGenProcessor {
 					}
 				}
 			}
-
-			//IMPORT ISSUE
-			//countFalseNegativeImports(javaFiles);
-			//printImportReport(expressionval);
+			
+			FPFNCandidates candidates = new FPFNCandidates();
 
 			//IMPORT ISSUE NEW
-			countAndPrintFalseNegativeImports(expressionval);
+			candidates.importCandidates 	= countAndPrintFalseNegativeImports(expressionval);
 
 			//RENAMING ISSUE
-			printRenamingReport(expressionval);
-			printListOfRenamings();
+			printRenamingNumbers(expressionval);
+			candidates.renamingCandidates 	= printListOfRenamings();
 
+			//DUPLICATED ISSUE
+			printDuplicatedMethodsNumbers(expressionval);
+			candidates.duplicatedCandidates	= printListOfDuplications();			
+			
 			setFstnodes(AbstractFSTParser.fstnodes);
-
+			
+			return candidates;
 		} catch (MergeException me) {
 			System.err.println(me.toString());
 			me.printStackTrace();
@@ -237,45 +261,56 @@ public class FSTGenMerger extends FSTGenProcessor {
 			e1.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (java.lang.RuntimeException ru){
-			ru.printStackTrace();
-			System.err.println(ru.toString());
 		} finally {
 			//removeBadParsedFiles(expressionval,basedirval);
 			removeBadParsedFiles();
 		}
+		return null;
 	}
-
 
 	public static void main(String[] args) {
 		try {
-			FileInputStream stream = new FileInputStream("C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\import.revision");
-			InputStreamReader reader = new InputStreamReader(stream);
-			BufferedReader br 	= new BufferedReader(reader);
-			String line 	 	= br.readLine();
-			while(line != null){
-				FSTGenMerger merger 			= new FSTGenMerger();
-				String file 					= line;
-				currentMergedRevisionFilePath 	= line;
-				String files[] 	= {"--expression",file};
-				merger.run(files);
-				line = br.readLine();
-			}
-			br.close();
+			//			FileInputStream stream = new FileInputStream("C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\import.revision");
+			//			InputStreamReader reader = new InputStreamReader(stream);
+			//			BufferedReader br 	= new BufferedReader(reader);
+			//			String line 	 	= br.readLine();
+			//			while(line != null){
+			//				FSTGenMerger merger 			= new FSTGenMerger();
+			//				String file 					= line;
+			//				currentMergedRevisionFilePath 	= line;
+			//				String files[] 	= {"--expression",file};
+			//				merger.run(files);
+			//				line = br.readLine();
+			//			}
+			//			br.close();
 
 
-			//			FSTGenMerger merger = new FSTGenMerger();
-			//			String file 	= "C:\\Users\\Guilherme\\Desktop\\rename2\\rev.revisions";
-			//			currentMergedRevisionFilePath = file;
-			//			String files[] 	= {"--expression",file};
-			//
-			//			//merger.ignoreEqualFiles(file);
-			//			merger.run(files);
-			//			//merger.restoreEqualFiles(file);
+			FSTGenMerger merger = new FSTGenMerger();
+			String revision 	= "C:\\Users\\Guilherme\\Desktop\\general\\rev.revisions";
+			currentMergedRevisionFilePath = revision;
+			String files[] 		= {"--expression",revision};
 
+			long t0 = System.currentTimeMillis();
+
+			merger.ignoreEqualFiles(revision);
+			
+			merger.run(files);
+			
+			Util.countConflicts(revision);
+			
+			merger.restoreEqualFiles(revision);
+
+			long tf = System.currentTimeMillis();
+			System.out.println("merge time: " + ((tf-t0)/60000) + " minutes");
+
+		} catch (RuntimeException ru){
+			ru.printStackTrace();
+			System.err.println(ru.toString());
+			deleteRevision();
+		
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		} 
 	}
 
 	private static FSTNode merge(List<FSTNonTerminal> tl) throws MergeException {
@@ -456,63 +491,17 @@ public class FSTGenMerger extends FSTGenProcessor {
 		}
 	}
 
-	private void removeBadParsedFiles(String expressionval, String basedirval) {
-		try {
-
-			//first, search and delete bad parsed files
-			StringBuffer sb = new StringBuffer(expressionval);
-			sb.setLength(sb.lastIndexOf("."));
-			sb.delete(0, sb.lastIndexOf(File.separator) + 1);
-			FSTGenProcessor composer = fileLoader.getComposer();
-			DuplicateFreeLinkedList<File> parsedErrors = composer.getErrorFiles();
-
-			//RENAMING ISSUE, DO NOT ACCOUNT THE RESULT FOR BAD PARSED FILES
-			//			if(parsedErrors.size() != 0){
-			//				mergeVisitor.getLineBasedMerger().setCountOfPossibleRenames(0);
-			//			}
-
-			for(File f : parsedErrors){
-				String filePath = f.getAbsolutePath();
-				String pattern = Pattern.quote(System.getProperty("file.separator"));
-				String[] splittedFileName = filePath.split(pattern);
-				String fileToDelete = "";
-				for(int i = 0; i<splittedFileName.length;i++){
-					if(splittedFileName[i].contains("rev_left") || splittedFileName[i].contains("rev_right") || splittedFileName[i].contains("rev_base")){
-						splittedFileName[i] = sb.toString();
-					} 
-					fileToDelete = fileToDelete + splittedFileName[i] +File.separator;
-				}
-				String ssmergeout 	= fileToDelete.substring(0,fileToDelete.length()-1);
-				String mergout 		= ssmergeout + ".merge";
-				File file = new File(ssmergeout);
-				if(file.exists())
-					FileDeleteStrategy.FORCE.delete(file);
-				file = new File(mergout);
-				if(file.exists())
-					FileDeleteStrategy.FORCE.delete(file);
-			}
-
-			//second, delete the output folder if it gets empty
-			String outputFolder = basedirval + File.separator + sb;
-			File f = new File(outputFolder);
-			if(isDirectoryEmpty(f))
-				FileUtils.deleteDirectory(new File(basedirval));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 	private void removeBadParsedFiles() {
 		try {
 			//Identifying folders names
 			File revFile 	= new File(currentMergedRevisionFilePath);
-			Scanner scanner = new Scanner(revFile);
-			String leftRevName 	= scanner.next();
-			String baseRevName 	= scanner.next();
-			String rightRevName = scanner.next();
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(revFile.getAbsolutePath())));   
+			String leftRevName 	= bufferedReader.readLine();
+			String baseRevName 	= bufferedReader.readLine();
+			String rightRevName = bufferedReader.readLine();
 			String mergedName 	= revFile.getName().split("\\.")[0];
 			String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
-			scanner.close();
+			bufferedReader.close();
 
 			//first, search and delete bad parsed files
 			FSTGenProcessor composer = fileLoader.getComposer();
@@ -540,6 +529,16 @@ public class FSTGenMerger extends FSTGenProcessor {
 			e.printStackTrace();
 		}
 	}
+
+	private static void deleteRevision() {
+		try {
+			File revFile 	= new File(currentMergedRevisionFilePath);
+			FileUtils.deleteDirectory(new File(revFile.getParent()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 
 	private boolean isDirectoryEmpty(File directory){
 		boolean result = true;
@@ -591,45 +590,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 	//		}
 	//	}
 
-	//	//IMPORT ISSUE
-	//	private void countFalseNegativeImports(LinkedList<FSTNonTerminal> javaFiles) {
-	//		for(FSTNonTerminal javaFile : javaFiles){
-	//			LinkedList<String> importDeclarations = new LinkedList<String>();
-	//			mergeVisitor.findImportDeclarations(javaFile, importDeclarations);
-	//			this.totalImports+= importDeclarations.size();
-	//			while(!importDeclarations.isEmpty()){
-	//				String importStatementCurrent 	= importDeclarations.poll();
-	//				String[] auxCurrent 			= (importStatementCurrent.replace(' ','.')).split("\\.");
-	//				String elementNameCurrent 		= auxCurrent[auxCurrent.length-1];
-	//				for(int i=0; i<importDeclarations.size();i++)
-	//				{
-	//					String importStatementIte 	= importDeclarations.get(i);
-	//					String[] auxIte 			= importStatementIte.split("\\.");
-	//					String elementNameIte 		= auxIte[auxIte.length-1];
-	//					if(!elementNameIte.equals("*;") && !elementNameCurrent.equals("*;") ){
-	//						if(elementNameIte.equals(elementNameCurrent)){
-	//							this.falseNegativeImports++;
-	//						}
-	//					}
-	//				}
-	//			}
-	//		}
-	//	}
-	//
-	//	//IMPORT ISSUE
-	//	private void printImportReport(String expressionval) throws IOException {
-	//		File file = new File( "imports_report.txt" );
-	//		FileWriter fw = new FileWriter(file, true);
-	//		BufferedWriter bw = new BufferedWriter( fw );
-	//		bw.write(expressionval+":"+this.totalImports +":"+this.falseNegativeImports);
-	//		bw.newLine();
-	//		bw.close();
-	//		fw.close();
-	//		this.falseNegativeImports 	= 0;
-	//		this.totalImports			= 0;
-	//	}
-	//
-
 	//IMPORT ISSUE NEW
 	private ArrayList<String> countAndPrintFalseNegativeImports(String expressionval) {
 		try{
@@ -668,7 +628,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 									if(rightImportedMember.equals("*;") && leftImportedMember.equals("*;")){ 			//p.* vs q.*
 										pairOfImportedPackages++;
-										if(!issuedFiles.contains(issuedFile))issuedFiles.add(issuedFile);
+										if(!issuedFiles.contains(issuedFile))issuedFiles.add(expressionval+";"+issuedFile);
 									} else if(rightImportedMember.equals("*;") || leftImportedMember.equals("*;")) {	//p.Z vs. q.*
 										pairOfImportedPackageAndMember++;
 
@@ -691,7 +651,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 										}
 									} else if(rightImportedMember.equals(leftImportedMember)) {							//p.Z vs. q.Z
 										pairOfImportedSameMember++;
-										if(!issuedFiles.contains(issuedFile))issuedFiles.add(issuedFile);
+										if(!issuedFiles.contains(issuedFile))issuedFiles.add(expressionval+";"+issuedFile);
 									}
 								}
 							}
@@ -701,7 +661,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			}
 
 			//revision;packages;packages and members; same members
-			File file = new File( "imports_report.csv" );
+			File file = new File("ssmerge_import_numbers.csv");
 			FileWriter fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
 			bw.write(expressionval+";"+pairOfImportedPackages+";"+pairOfImportedPackageAndMember+";"+pairOfImportedPackageAndMemberUsed+";"+pairOfImportedSameMember+";"+totalInsertedImports);
@@ -712,7 +672,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			importsFromBase.clear();
 			importsFromLeft.clear();
 			importsFromRight.clear();
-			
+
 			return issuedFiles;
 		}catch(Exception e){
 			e.printStackTrace();
@@ -726,14 +686,14 @@ public class FSTGenMerger extends FSTGenProcessor {
 		try {
 			//GETTING THE PATH OF THE FILES TO BE ANALYSED
 			File revFile = new File(currentMergedRevisionFilePath);
-			Scanner scanner = new Scanner(revFile);
-			String leftRevName 	= scanner.next();
-			String baseRevName 	= scanner.next();
-			String rightRevName = scanner.next();
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(revFile.getAbsolutePath()))); 
+			String leftRevName 	= bufferedReader.readLine();
+			String baseRevName 	= bufferedReader.readLine();
+			String rightRevName = bufferedReader.readLine();
 			String baseFolder 	= revFile.getParentFile() + File.separator + baseRevName;
 			String leftFolder 	= revFile.getParentFile() + File.separator + leftRevName;
 			String rightFolder 	= revFile.getParentFile() + File.separator + rightRevName;
-			scanner.close();
+			bufferedReader.close();
 
 			//VERIFYING IF ONE FILE USES A SAME NAMED MEMBER IMPORTED BY THE OTHER FILE
 			try {
@@ -821,23 +781,23 @@ public class FSTGenMerger extends FSTGenProcessor {
 	}
 
 	//RENAMING ISSUE
-	private void printRenamingReport(String expressionval) throws IOException {
-		File file = new File( "renaming_report.txt" );
+	private void printRenamingNumbers(String expressionval) throws IOException {
+		File file = new File( "ssmerge_renaming_numbers.csv" );
 		FileWriter fw = new FileWriter(file, true);
 		BufferedWriter bw = new BufferedWriter( fw );
-		bw.write(expressionval+":"+this.mergeVisitor.getLineBasedMerger().getCountOfPossibleRenames());
+		bw.write(expressionval+";"+this.mergeVisitor.getLineBasedMerger().getCountOfPossibleRenames());
 		bw.newLine();
 		bw.close();
 		fw.close();
-		this.mergeVisitor.getLineBasedMerger().setCountOfPossibleRenames(0);
+		//this.mergeVisitor.getLineBasedMerger().setCountOfPossibleRenames(0);
 		//this.mergeVisitor.setLineBasedMerger(null);
 	}
 
-
 	//RENAMING ISSUE
-	private ArrayList<String> printListOfRenamings() throws IOException {
-		ArrayList<String> listOfRenames = (ArrayList<String>) this.mergeVisitor.getLineBasedMerger().listRenames.subList(0, this.mergeVisitor.getLineBasedMerger().listRenames.size()-1);
-		File file = new File( "renaming_list.csv" );
+	private List<String> printListOfRenamings() throws IOException {
+		//List<String> listOfRenames = this.mergeVisitor.getLineBasedMerger().listRenames.subList(0, this.mergeVisitor.getLineBasedMerger().listRenames.size()-1);
+		List<String> listOfRenames = this.mergeVisitor.getLineBasedMerger().listRenames;
+		File file = new File( "ssmerge_renaming_list.csv" );
 		FileWriter fw = new FileWriter(file, true);
 		BufferedWriter bw = new BufferedWriter( fw );
 		for(String e : listOfRenames){
@@ -846,19 +806,49 @@ public class FSTGenMerger extends FSTGenProcessor {
 		}
 		bw.close();
 		fw.close();
-		this.mergeVisitor.setLineBasedMerger(null);
+		//this.mergeVisitor.setLineBasedMerger(null);
 		return listOfRenames;
 	}
+	
+	//DUPLICATED METHOD ISSUE
+	private void printDuplicatedMethodsNumbers(String expressionval) throws IOException {
+		File file = new File( "ssmerge_duplicated_numbers.csv" );
+		FileWriter fw = new FileWriter(file, true);
+		BufferedWriter bw = new BufferedWriter( fw );
+		bw.write(expressionval+";"+this.mergeVisitor.getLineBasedMerger().getCountOfPossibleDuplications());
+		bw.newLine();
+		bw.close();
+		fw.close();
+		//this.mergeVisitor.getLineBasedMerger().setCountOfPossibleRenames(0);
+		//this.mergeVisitor.setLineBasedMerger(null);
+	}
 
-	@SuppressWarnings("resource")
+	//DUPLICATED METHOD ISSUE
+	private List<String> printListOfDuplications() throws IOException {
+		//List<String> listOfRenames = this.mergeVisitor.getLineBasedMerger().listRenames.subList(0, this.mergeVisitor.getLineBasedMerger().listRenames.size()-1);
+		List<String> listOfDuplications = this.mergeVisitor.getLineBasedMerger().listDuplicatedMethods;
+		File file = new File( "ssmerge_duplicated_list.csv" );
+		FileWriter fw = new FileWriter(file, true);
+		BufferedWriter bw = new BufferedWriter( fw );
+		for(String e : listOfDuplications){
+			bw.write(e);
+			bw.newLine();
+		}
+		bw.close();
+		fw.close();
+		//this.mergeVisitor.setLineBasedMerger(null);
+		return listOfDuplications;
+	}
+
 	private void ignoreEqualFiles(String revisionFilePath){
 		try {
 			File revFile = new File(revisionFilePath);
-			Scanner scanner = new Scanner(revFile);
-			String leftRevName 	= scanner.next();
-			String baseRevName 	= scanner.next();
-			String rightRevName = scanner.next();
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(revFile.getAbsolutePath()))); 
+			String leftRevName 	= bufferedReader.readLine();
+			String baseRevName 	= bufferedReader.readLine();
+			String rightRevName = bufferedReader.readLine();
 			String baseFolder 	= revFile.getParentFile() + File.separator + baseRevName;
+			bufferedReader.close();
 			moveEqualFiles(leftRevName,baseRevName,baseFolder,rightRevName);
 		} catch (IOException e) {
 			e.printStackTrace();

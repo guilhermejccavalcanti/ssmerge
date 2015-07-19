@@ -26,12 +26,15 @@ public class LineBasedMerger implements MergerInterface {
 	String currentRevision						= "";
 	List<String> listRenames					= new ArrayList();
 
+	//DUPLICATED METHOD ISSUE
+	List<String> listDuplicatedMethods			= new ArrayList();
+	private int countOfPossibleDuplications		= 0;
+
 
 	static final String CONFLICT_DELIMITER 	= "<<<<<";
 	static final int LEFT_CONTENT 	= 0;
 	static final int BASE_CONTENT 	= 1;
 	static final int RIGHT_CONTENT 	= 2;
-
 
 	@SuppressWarnings("static-access")
 	public void merge(FSTTerminal node) throws ContentMergeException {
@@ -139,7 +142,10 @@ public class LineBasedMerger implements MergerInterface {
 			//RENAMING ISSUE
 			//CHECKING POSSIBLE RENAMING ISSUES, ONLY IF THERE ARE CONFLICT
 			if(res.contains(this.CONFLICT_DELIMITER))
-				identifyAndAccountRenaming(node, tokens);
+				identifyAndAccountRenamingAndDuplications(node, tokens,false);
+
+			//DUPLICATED ISSUE
+			identifyAndAccountRenamingAndDuplications(node, tokens,true);
 
 
 			buf = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
@@ -159,50 +165,60 @@ public class LineBasedMerger implements MergerInterface {
 		}
 	}
 
-	//RENAMING ISSUE
-	private void identifyAndAccountRenaming(FSTTerminal node, String[] tokens) {
+	//RENAMING ISSUE && DUPLICATED METHOD ISSUE
+	private void identifyAndAccountRenamingAndDuplications(FSTTerminal node, String[] tokens, boolean checkDuplications) {
 		if( 	node.getType().contains("MethodDecl")|| 
 				node.getType().contains("FunctionDefinition") ||
 				node.getType().contains("classsmall_stmt1") ||
 				node.getType().contains("class_member_declarationEnd6")){
 			if(isFileAllowed()){
-				if(		( tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && !tokens[LineBasedMerger.BASE_CONTENT].isEmpty() && !tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()) ||
-						(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() &&  tokens[LineBasedMerger.BASE_CONTENT].isEmpty() && !tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()) ||
-						(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && !tokens[LineBasedMerger.BASE_CONTENT].isEmpty() &&  tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty())	){
-					this.countOfPossibleRenames++;
-					String methodSignature = this.getMethodSignature(node);
-					if(!methodSignature.equals("")){
-						this.listRenames.add(this.getMergedFolder()+";"+ this.getFileAbsolutePath(node)+";"+methodSignature);
+				if(checkDuplications){
+					if(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && tokens[LineBasedMerger.BASE_CONTENT].isEmpty() && !tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()){
+						String methodSignature = this.getMethodSignature(node);
+						if(!methodSignature.equals("")){
+							this.countOfPossibleDuplications++;
+							this.listDuplicatedMethods.add(this.getMergedFolder()+";"+ this.getFileAbsolutePath(node)+";"+methodSignature);
+						}			
 					}
+				} else {
+					if(		( tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && !tokens[LineBasedMerger.BASE_CONTENT].isEmpty() && !tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()) ||
+							(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && !tokens[LineBasedMerger.BASE_CONTENT].isEmpty() &&  tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty())	){
+						this.countOfPossibleRenames++;
+						String methodSignature = this.getMethodSignature(node);
+						if(!methodSignature.equals("")){
+							this.listRenames.add(this.getMergedFolder()+";"+ this.getFileAbsolutePath(node)+";"+methodSignature);
+						}
 
-					
-					//SOLVING CONFLICT FOR BUILD PURPOSES
-					if(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty()){
-						String methodStub = "";
-						if(belongsToInterface(node)){
-							methodStub = tokens[LineBasedMerger.LEFT_CONTENT];
-						} else {
-							methodStub = Util.generateMethodStub(tokens[LineBasedMerger.LEFT_CONTENT]);
-						}
-						node.setBody(methodStub);
-					}else{ 
-						if (!tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()){
-							String methodStub ="";
-							if(belongsToInterface(node)){
-								methodStub = tokens[LineBasedMerger.RIGHT_CONTENT];
-							} else {
-								methodStub = Util.generateMethodStub(tokens[LineBasedMerger.RIGHT_CONTENT]);
-							}
-							node.setBody(methodStub);
-						}
-					}
-				} else {//SOLVING CONFLICT FOR BUILD PURPOSES
-					node.setBody(Util.generateMultipleMethodBody(tokens[LineBasedMerger.LEFT_CONTENT], tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.RIGHT_CONTENT]));
-				}
-			}
+						//					//SOLVING CONFLICT FOR BUILD PURPOSES
+						//					if(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty()){
+						//						String methodStub = "";
+						//						if(belongsToInterface(node)){
+						//							methodStub = tokens[LineBasedMerger.LEFT_CONTENT];
+						//						} else {
+						//							methodStub = Util.generateMethodStub(tokens[LineBasedMerger.LEFT_CONTENT]);
+						//						}
+						//						node.setBody(methodStub);
+						//					}else{ 
+						//						if (!tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()){
+						//							String methodStub ="";
+						//							if(belongsToInterface(node)){
+						//								methodStub = tokens[LineBasedMerger.RIGHT_CONTENT];
+						//							} else {
+						//								methodStub = Util.generateMethodStub(tokens[LineBasedMerger.RIGHT_CONTENT]);
+						//							}
+						//							node.setBody(methodStub);
+						//						}
+						//					}
+					} 
+					//				else {//SOLVING CONFLICT FOR BUILD PURPOSES
+					//					node.setBody(Util.generateMultipleMethodBody(tokens[LineBasedMerger.LEFT_CONTENT], tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.RIGHT_CONTENT]));
+					//				}
+				}	
+			} 
 		}
 	}
 
+	//RENAMING ISSUE
 	private boolean belongsToInterface(FSTTerminal node) {
 		try{
 			FSTNonTerminal parent = node.getParent();
@@ -267,6 +283,16 @@ public class LineBasedMerger implements MergerInterface {
 	private String getMergedFolder() {
 		//return ((currentRevision.split("\\."))[0]).replace("\\", "/");
 		return ((currentRevision.split("\\."))[0]);
+	}
+
+	//DUPLICATED METHOD ISSUE
+	public int getCountOfPossibleDuplications() {
+		return countOfPossibleDuplications;
+	}
+
+	//DUPLICATED METHOD ISSUE
+	public void setCountOfPossibleDuplications(int countOfPossibleDuplications) {
+		this.countOfPossibleDuplications = countOfPossibleDuplications;
 	}
 
 }
