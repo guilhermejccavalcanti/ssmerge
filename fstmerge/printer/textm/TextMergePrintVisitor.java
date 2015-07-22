@@ -23,6 +23,18 @@ public class TextMergePrintVisitor extends ArtifactPrintVisitor {
 			assert(nonterminal.getChildren().isEmpty());
 			assert(!(nonterminal.getChildren().get(0) instanceof FSTTerminal));
 			
+			
+			//WORKAROUND
+			String dir 	 = folderPath.getAbsolutePath();
+			char fst 	 = dir.charAt(0);
+			String dsk 	 = fst+":";
+			String[] sep = dir.split(dsk);
+			if(sep.length > 2) {
+				dir = dsk + sep[sep.length-1];
+				folderPath = new File(dir);
+				folderPath.mkdirs();
+			}
+			
 			String content = ((FSTTerminal)nonterminal.getChildren().get(0)).getBody();
 			File textFile = new File(folderPath, nonterminal.getName());
 			BufferedWriter textFileWriter = null;

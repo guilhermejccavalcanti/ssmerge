@@ -19,6 +19,18 @@ public class JavaMergePrintVisitor extends ArtifactPrintVisitor {
 		if(node instanceof FSTNonTerminal) {
 			FSTNonTerminal nonterminal = (FSTNonTerminal)node;
 			for(FSTNode child : nonterminal.getChildren()) {
+				
+				//WORKAROUND
+				String dir 	 = folderPath.getAbsolutePath();
+				char fst 	 = dir.charAt(0);
+				String dsk 	 = fst+":";
+				String[] sep = dir.split(dsk);
+				if(sep.length > 2) {
+					dir = dsk + sep[sep.length-1];
+					folderPath = new File(dir);
+					folderPath.mkdirs();
+				}
+				
 				String fileName = folderPath.getPath() + File.separator + nonterminal.getName();
 
 				SimplePrintVisitor visitor;

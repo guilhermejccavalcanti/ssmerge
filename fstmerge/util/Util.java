@@ -5,17 +5,17 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+
+import merger.MergeResult;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -138,6 +138,16 @@ public class Util {
 		return (leftContent.equals(baseContent) && rightContent.equals(baseContent));
 	}
 
+	public static boolean isFilesContentEqual(String firstFilePath, String secondFilePath){
+		String firstContent  = getFileContents(firstFilePath);
+		String secondContent = getFileContents(secondFilePath);
+
+		firstContent = (firstContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+		secondContent = (secondContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+
+		return (firstContent.equals(secondContent));
+	}
+
 	public static void countConflicts(String revision) {
 		File revFile 		= new File(revision);
 		if(revFile.exists()){
@@ -146,6 +156,16 @@ public class Util {
 			MergeResult mergeResult= new MergeResult();
 			countConflicts(root,mergeResult);
 			printConflictsReport(revision,mergeResult);
+		}
+	}
+	
+	public static void countConflicts(MergeResult mergeResult) {
+		File revFile 		= new File(mergeResult.revision);
+		if(revFile.exists()){
+			String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
+			File root 	 		= new File(mergedFolder);
+			countConflicts(root,mergeResult);
+			printConflictsReport(mergeResult.revision,mergeResult);
 		}
 	}
 
@@ -323,16 +343,20 @@ public class Util {
 	}
 
 	private static void countConflicts(File folder, MergeResult mergeResult){
-		File[] fList = folder.listFiles();
-		for (File f : fList){
-			if (f.isDirectory()){
-				countConflicts(f, mergeResult);
-			} else {
-				if(FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("java") ||
-						FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("merge")){
-					countHeaders(f,mergeResult);
-				} 
+		try{
+			File[] fList = folder.listFiles();
+			for (File f : fList){
+				if (f.isDirectory()){
+					countConflicts(f, mergeResult);
+				} else {
+					if(FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("java") ||
+							FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("merge")){
+						countHeaders(f,mergeResult);
+					} 
+				}
 			}
+		}catch(Exception e){
+			return;
 		}
 	}
 
@@ -379,7 +403,7 @@ public class Util {
 					mergeResult.linebasedFiles++;
 				}
 			}
-			
+
 			bufferedReader.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -401,18 +425,7 @@ public class Util {
 		}
 	}
 
-	private static class MergeResult {
-		int ssmergeConfs 	= 0;
-		int ssmergeLOC		= 0;
-		int ssmergeFiles	= 0;
-
-		int linedbasedConfs = 0;
-		int linebasedLOC	= 0;
-		int linebasedFiles	= 0;
-
-		int semanticConfs	= 0;
-
-	}
+	
 
 	public static void main(String[] args) {
 
