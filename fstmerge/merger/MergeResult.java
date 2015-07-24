@@ -15,10 +15,9 @@ public class MergeResult {
 		public int semanticConfs	= 0;
 		
 		//false positives
-		public int orderingConflictsFromSsmerge = 0;
-		public int orderingConflictsFromParser  = 0;
 		public int renamingConflictsFromSsmerge = 0;
 		public int renamingConflictsFromParser  = 0;
+		public int orderingConflicts  			= 0;
 		
 		//false negatives
 		public int importIssuesFromSsmergePackagePackage = 0;

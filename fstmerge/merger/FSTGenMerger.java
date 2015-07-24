@@ -144,7 +144,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 		} 
 		return null;
 	}
-	
+
 	public FPFNCandidates runMerger(MergeResult mergeResult) {
 		try {
 			FSTGenMerger merger = new FSTGenMerger();
@@ -695,14 +695,17 @@ public class FSTGenMerger extends FSTGenProcessor {
 			}
 
 			//revision;packages;packages and members; same members
-			File file = new File("ssmerge_import_numbers.csv");
+			File file = new File("results/ssmerge_import_numbers.csv");
 			FileWriter fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
 			bw.write(expressionval+";"+pairOfImportedPackages+";"+pairOfImportedPackageAndMember+";"+pairOfImportedPackageAndMemberUsed+";"+pairOfImportedSameMember+";"+totalInsertedImports);
-			currentMergeResult.importIssuesFromSsmergeMemberMember 	 = pairOfImportedSameMember;
-			currentMergeResult.importIssuesFromSsmergePackagePackage = pairOfImportedPackages;
-			currentMergeResult.importIssuesFromSsmergePackageMember  = pairOfImportedPackageAndMemberUsed;
-			currentMergeResult.importsInserted  					 = totalInsertedImports;
+
+			if(currentMergeResult!=null){
+				currentMergeResult.importIssuesFromSsmergeMemberMember 	 = pairOfImportedSameMember;
+				currentMergeResult.importIssuesFromSsmergePackagePackage = pairOfImportedPackages;
+				currentMergeResult.importIssuesFromSsmergePackageMember  = pairOfImportedPackageAndMemberUsed;
+				currentMergeResult.importsInserted  					 = totalInsertedImports;
+			}
 
 			bw.newLine();
 			bw.close();
@@ -821,7 +824,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 	//RENAMING ISSUE
 	private void printRenamingNumbers(String expressionval) throws IOException {
-		File file = new File( "ssmerge_renaming_numbers.csv" );
+		File file = new File( "results/ssmerge_renaming_numbers.csv" );
 		FileWriter fw = new FileWriter(file, true);
 		BufferedWriter bw = new BufferedWriter( fw );
 		try{
@@ -842,7 +845,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 	private List<String> printListOfRenamings() throws IOException {
 		try{
 			List<String> listOfRenames = this.mergeVisitor.getLineBasedMerger().listRenames;
-			File file = new File( "ssmerge_renaming_list.csv" );
+			File file = new File( "results/ssmerge_renaming_list.csv" );
 			FileWriter fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
 			for(String e : listOfRenames){
@@ -858,7 +861,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 	//DUPLICATED METHOD ISSUE
 	private void printDuplicatedMethodsNumbers(String expressionval) throws IOException {
-		File file = new File( "ssmerge_duplicated_numbers.csv" );
+		File file = new File( "results/ssmerge_duplicated_numbers.csv" );
 		FileWriter fw = new FileWriter(file, true);
 		BufferedWriter bw = new BufferedWriter( fw );
 		try{
@@ -879,7 +882,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 	private List<String> printListOfDuplications() throws IOException {
 		try{
 			List<String> listOfDuplications = this.mergeVisitor.getLineBasedMerger().listDuplicatedMethods;
-			File file = new File( "ssmerge_duplicated_list.csv" );
+			File file = new File( "results/ssmerge_duplicated_list.csv" );
 			FileWriter fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
 			for(String e : listOfDuplications){
@@ -909,11 +912,12 @@ public class FSTGenMerger extends FSTGenProcessor {
 	}
 
 	private void restoreEqualFiles(String revisionFilePath) throws IOException{
-		StringBuffer sb = new StringBuffer(revisionFilePath);
-		sb.setLength(sb.lastIndexOf("."));
-		sb.delete(0, sb.lastIndexOf(File.separator) + 1);
+		//StringBuffer sb = new StringBuffer(revisionFilePath);
+		//sb.setLength(sb.lastIndexOf("."));
+		//sb.delete(0, sb.lastIndexOf(File.separator) + 1);
 		String tempFolder = revisionFilePath.replaceFirst((new File(revisionFilePath).getName()),"_equalFiles");
-		String resultAlias = sb.toString();
+		//String resultAlias = sb.toString();
+		String resultAlias 	= (new File(revisionFilePath)).getName().split("\\.")[0];
 		if(new File(tempFolder).exists()){
 			moveEqualFilesBack("_equalFiles", tempFolder, resultAlias);
 			FileUtils.deleteDirectory(new File(tempFolder));
@@ -969,7 +973,11 @@ public class FSTGenMerger extends FSTGenProcessor {
 				moveEqualFilesBack(tempAlias,file.getAbsolutePath(),resultAlias);
 			} else {
 				File finalFile = new File(file.getAbsolutePath().replaceFirst(tempAlias, resultAlias));
-				FileUtils.moveFile(file, finalFile);
+				try{
+					FileUtils.moveFile(file, finalFile);
+				}catch(Exception e){
+					e.printStackTrace();
+				}
 				System.out.println("restoring: " + file.getAbsolutePath());
 			}
 		}

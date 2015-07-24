@@ -372,7 +372,7 @@ public class Util {
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(f.getAbsolutePath())));   
 			String line;
 			while ((line = bufferedReader.readLine()) != null) {
-				if(line.contains(CONFLICT_HEADER_END)) {
+				if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
 					isConflictOpen	= false;
 				}
 
@@ -384,7 +384,7 @@ public class Util {
 					}
 				}
 
-				if(line.contains(CONFLICT_HEADER_BEGIN)){
+				if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
 					isConflictingFile = true;
 					isConflictOpen = true;
 					if(FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("java")){
@@ -412,7 +412,7 @@ public class Util {
 
 	private static void printConflictsReport(String revision, MergeResult mergeResult) {
 		try {
-			File file = new File("ssmerge_conflicts_report.csv" );
+			File file = new File("results/ssmerge_conflicts_report.csv" );
 			FileWriter fw;
 			fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
@@ -424,8 +424,6 @@ public class Util {
 			e.printStackTrace();
 		}
 	}
-
-	
 
 	public static void main(String[] args) {
 
