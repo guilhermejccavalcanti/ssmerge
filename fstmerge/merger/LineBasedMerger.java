@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import modification.traversalLanguageParser.addressManagement.DuplicateFreeLinkedList;
 import util.Util;
@@ -177,7 +178,9 @@ public class LineBasedMerger implements MergerInterface {
 						String methodSignature = this.getMethodSignature(node);
 						if(!methodSignature.equals("")){
 							this.countOfPossibleDuplications++;
-							this.listDuplicatedMethods.add(this.getMergedFolder()+";"+ this.getFileAbsolutePath(node)+";"+methodSignature);
+							String mergedFolder  = (this.getMergedFolder()).replaceAll("/", Matcher.quoteReplacement(File.separator));
+							String candidateFile = mergedFolder + this.getFileAbsolutePath(node) + ".java.merge";
+							this.listDuplicatedMethods.add(mergedFolder+";"+candidateFile+";"+methodSignature);
 						}			
 					}
 				} else {
@@ -186,7 +189,8 @@ public class LineBasedMerger implements MergerInterface {
 						this.countOfPossibleRenames++;
 						String methodSignature = this.getMethodSignature(node);
 						if(!methodSignature.equals("")){
-							this.listRenames.add(this.getMergedFolder()+";"+ this.getFileAbsolutePath(node)+";"+methodSignature);
+							String mergedFolder  = (this.getMergedFolder()).replaceAll("/", Matcher.quoteReplacement(File.separator));
+							this.listRenames.add(mergedFolder+";"+ this.getFileAbsolutePath(node)+";"+methodSignature);
 						}
 
 						//					//SOLVING CONFLICT FOR BUILD PURPOSES

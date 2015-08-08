@@ -651,7 +651,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 									File revFile 		= new File(currentMergedRevisionFilePath);
 									String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
-									String issuedFile	= mergedFolder+leftImportsClass;
+									String issuedFile	= expressionval+";"+mergedFolder+leftImportsClass;
 
 									rightImportStmt = (rightImportStmt.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
 									String[] aux = rightImportStmt.split("\\.");
@@ -662,7 +662,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 									if(rightImportedMember.equals("*;") && leftImportedMember.equals("*;")){ 			//p.* vs q.*
 										pairOfImportedPackages++;
-										if(!issuedFiles.contains(issuedFile))issuedFiles.add(expressionval+";"+issuedFile);
+										if(!issuedFiles.contains(issuedFile))issuedFiles.add(issuedFile);
 									} else if(rightImportedMember.equals("*;") || leftImportedMember.equals("*;")) {	//p.Z vs. q.*
 										pairOfImportedPackageAndMember++;
 
@@ -685,7 +685,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 										}
 									} else if(rightImportedMember.equals(leftImportedMember)) {							//p.Z vs. q.Z
 										pairOfImportedSameMember++;
-										if(!issuedFiles.contains(issuedFile))issuedFiles.add(expressionval+";"+issuedFile);
+										if(!issuedFiles.contains(issuedFile))issuedFiles.add(issuedFile);
 									}
 								}
 							}
@@ -746,7 +746,8 @@ public class FSTGenMerger extends FSTGenProcessor {
 					File right = new File(rightFolder+targetClass);
 					ArrayList<String> rightContribs = (new DiffMerged().findLinesContributionsNonNumeric(right, base, base)).get(0);
 					for(String contrib : rightContribs){
-						if(contrib.contains(memberName) && !contrib.contains("import")){
+						//if(contrib.contains(memberName) && !contrib.contains("import")){
+						if(contrib.matches("(?s).*\\b"+memberName+"\\b.*") && !contrib.contains("import ")){
 							result = true;
 							break;
 						}
@@ -757,7 +758,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 					ArrayList<String> leftContribs;
 					leftContribs = (new DiffMerged().findLinesContributionsNonNumeric(left, base, base)).get(0);
 					for(String contrib : leftContribs){
-						if(contrib.contains(memberName) && !contrib.contains("import")){
+						if(contrib.matches("(?s).*\\b"+memberName+"\\b.*") && !contrib.contains("import ")){
 							result = true;
 							break;
 						}
@@ -782,7 +783,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 					BufferedReader br = new BufferedReader(reader);
 					String line = br.readLine();
 					while(line != null){
-						if(line.contains(memberName) && !line.contains("import")){
+						if(line.matches("(?s).*\\b"+memberName+"\\b.*") && !line.contains("import ")){
 							result = true;
 							break;
 						}
@@ -891,7 +892,17 @@ public class FSTGenMerger extends FSTGenProcessor {
 			}
 			bw.close();
 			fw.close();
-			return listOfDuplications;
+			
+			List<String> duplicateCandidates = new ArrayList<String>();
+			for(String entry: this.mergeVisitor.getLineBasedMerger().listDuplicatedMethods){
+				String[] columns = entry.split(";"); 
+				String duplicateCandidate = columns[0]+";"+columns[0]+columns[1]+".java";
+				if(!duplicateCandidates.contains(duplicateCandidate)){
+					duplicateCandidates.add(duplicateCandidate);
+				}
+			}
+			
+			return duplicateCandidates;
 		}catch(Exception e){}
 		return new ArrayList<String>();
 	}

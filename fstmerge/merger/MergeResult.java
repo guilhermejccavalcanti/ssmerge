@@ -22,7 +22,7 @@ public class MergeResult {
 		//false negatives
 		public int importIssuesFromSsmergePackagePackage = 0;
 		public int importIssuesFromSsmergePackageMember  = 0;
-		public int importIssuesFromSsmergeMemberMember  = 0;
+		public int importIssuesFromSsmergeMemberMember   = 0;
 		public int importIssuesFromParser	    = 0;
 		public int importsInserted				= 0;
 		
