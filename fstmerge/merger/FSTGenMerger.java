@@ -896,7 +896,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			List<String> duplicateCandidates = new ArrayList<String>();
 			for(String entry: this.mergeVisitor.getLineBasedMerger().listDuplicatedMethods){
 				String[] columns = entry.split(";"); 
-				String duplicateCandidate = columns[0]+";"+columns[0]+columns[1]+".java";
+				String duplicateCandidate = columns[0]+";"+columns[1];
 				if(!duplicateCandidates.contains(duplicateCandidate)){
 					duplicateCandidates.add(duplicateCandidate);
 				}
