@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Scanner;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -17,9 +18,14 @@ import java.util.jar.Manifest;
 
 import merger.MergeResult;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 public class Util {
+
+	public static int JDIME_CONFS 	= 0;
+	public static int JDIME_LOCS 	= 0;
+	public static int JDIME_FILES 	= 0;
 
 	public static String generateMethodStub(String methodSourceCode) {
 		String methodSignature = getMethodSignature(methodSourceCode);
@@ -148,17 +154,24 @@ public class Util {
 		return (firstContent.equals(secondContent));
 	}
 
+	public static boolean isStringsContentEqual(String firstString, String secondString){
+		firstString = (firstString.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+		secondString = (secondString.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+
+		return (firstString.equals(secondString));
+	}
+
 	public static void countConflicts(String revision) {
 		File revFile 		= new File(revision);
 		if(revFile.exists()){
-			String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
-			File root 	 		= new File(mergedFolder);
-			MergeResult mergeResult= new MergeResult();
+			String mergedFolder 	= revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
+			File root 	 			= new File(mergedFolder);
+			MergeResult mergeResult = new MergeResult();
 			countConflicts(root,mergeResult);
 			printConflictsReport(revision,mergeResult);
 		}
 	}
-	
+
 	public static void countConflicts(MergeResult mergeResult) {
 		File revFile 		= new File(mergeResult.revision);
 		if(revFile.exists()){
@@ -167,6 +180,23 @@ public class Util {
 			countConflicts(root,mergeResult);
 			printConflictsReport(mergeResult.revision,mergeResult);
 		}
+	}
+
+	public static void countJdimeConflicts(MergeResult currentMergeResult) {
+		try {
+			File tempFile  = new File("results/temp_jdime_conflicts_report.csv");
+			if(tempFile.exists() && (null!=currentMergeResult)){
+				String line    = (FileUtils.readLines(tempFile)).get(0);
+				String[] stats = line.split(";");
+				currentMergeResult.jdimeConfs += Integer.valueOf(stats[0]);
+				currentMergeResult.jdimeLOC   += Integer.valueOf(stats[1]);
+				currentMergeResult.jdimeFiles += Integer.valueOf(stats[2]);		
+				FileUtils.forceDelete(tempFile);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private static String getFileContents(String filePath){
@@ -349,12 +379,22 @@ public class Util {
 				if (f.isDirectory()){
 					countConflicts(f, mergeResult);
 				} else {
-					if(FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("java") ||
+					if(	FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("java") ||
 							FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("merge")){
+
 						countHeaders(f,mergeResult);
 					} 
 				}
 			}
+
+			mergeResult.jdimeConfs	+= Util.JDIME_CONFS;
+			mergeResult.jdimeLOC	+= Util.JDIME_LOCS;
+			mergeResult.jdimeFiles	+= Util.JDIME_FILES;
+
+			//reseting
+			Util.JDIME_CONFS 	= 0;
+			Util.JDIME_LOCS 	= 0;
+			Util.JDIME_FILES	= 0;
 		}catch(Exception e){
 			return;
 		}
@@ -410,13 +450,49 @@ public class Util {
 		}
 	}
 
+	private static void countHeaders(String fileContent, MergeResult mergeResult) {
+		String CONFLICT_HEADER_BEGIN= "<<<<<<<";
+		String CONFLICT_HEADER_END 	= ">>>>>>>";
+
+		boolean isConflictOpen		= false;
+		boolean isConflictingFile	= false;
+
+		Scanner scanner = new Scanner(fileContent);
+		while (scanner.hasNextLine()) {
+			String line = scanner.nextLine();
+			if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
+				isConflictOpen	= false;
+			}
+			if(isConflictOpen){
+				mergeResult.jdimeLOC++;
+			}
+			if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
+				isConflictingFile = true;
+				isConflictOpen = true;
+				mergeResult.jdimeConfs++;
+			} 
+		}
+		scanner.close();
+		if(isConflictingFile){
+			mergeResult.jdimeFiles++;
+		}
+
+	}
+
 	private static void printConflictsReport(String revision, MergeResult mergeResult) {
 		try {
 			File file = new File("results/ssmerge_conflicts_report.csv" );
+			if(!file.exists()){
+				file.createNewFile();
+			}
+
 			FileWriter fw;
 			fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
-			bw.write(revision+";"+mergeResult.ssmergeConfs+";"+mergeResult.linedbasedConfs+";" +mergeResult.ssmergeLOC+";"+mergeResult.linebasedLOC+";"+mergeResult.ssmergeFiles+";"+mergeResult.linebasedFiles+";"+mergeResult.semanticConfs);
+			bw.write(revision+";"+mergeResult.ssmergeConfs+";"+mergeResult.linedbasedConfs+";" +mergeResult.ssmergeLOC+";"
+					+mergeResult.linebasedLOC+";"+mergeResult.ssmergeFiles+";"+mergeResult.linebasedFiles+";"
+					+mergeResult.semanticConfs+";"
+					+mergeResult.jdimeConfs+";"+mergeResult.jdimeLOC+";"+mergeResult.jdimeFiles);
 			bw.newLine();
 			bw.close();
 			fw.close();		
@@ -425,28 +501,30 @@ public class Util {
 		}
 	}
 
-	public static void main(String[] args) {
+	//	public static void main(String[] args) {
+	//
+	//		countConflicts("C:\\Users\\Guilherme\\Desktop\\rename2\\rev.revisions");
+	//		countConflicts("C:\\Users\\Guilherme\\Desktop\\rename2\\rev.revisions");
+	//
+	//		isFilesContentEqual("C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils.java", "C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils1.java", "C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils2.java");
+	//
+	//		getMethodBody("public int soma(int a, int b, int c){   int result = a + b + c;   return result;  }");
+	//
+	//		simplifyMethodSignature("soma(int-int-int-int) throws Execeptionption");
+	//
+	//		// String str ="public int soma(int a, int c) throws Exception {";
+	//		String str = "<T, S extends T> int copy(List<T> dest, List<S> src) {";
+	//		// PEGANDO A ASSINATURA DO MÉTODO
+	//		String methodSignature = getMethodSignature(str);
+	//		String returnType = getMethodReturnType(methodSignature);
+	//		System.out.println(returnType);
+	//		System.out.println(methodSignature);
+	//		System.out.println(removeGenerics(methodSignature));
+	//		System.out.println(generateMethodStub(str));
+	//
+	//		generateJarFile("C:\\GGTS\\workspace\\ASM_TesteCaller");
+	//
+	//	}
 
-		countConflicts("C:\\Users\\Guilherme\\Desktop\\rename2\\rev.revisions");
-		countConflicts("C:\\Users\\Guilherme\\Desktop\\rename2\\rev.revisions");
 
-		isFilesContentEqual("C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils.java", "C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils1.java", "C:\\Users\\Guilherme\\Desktop\\n\\MemoryUtils2.java");
-
-		getMethodBody("public int soma(int a, int b, int c){   int result = a + b + c;   return result;  }");
-
-		simplifyMethodSignature("soma(int-int-int-int) throws Execeptionption");
-
-		// String str ="public int soma(int a, int c) throws Exception {";
-		String str = "<T, S extends T> int copy(List<T> dest, List<S> src) {";
-		// PEGANDO A ASSINATURA DO MÉTODO
-		String methodSignature = getMethodSignature(str);
-		String returnType = getMethodReturnType(methodSignature);
-		System.out.println(returnType);
-		System.out.println(methodSignature);
-		System.out.println(removeGenerics(methodSignature));
-		System.out.println(generateMethodStub(str));
-
-		generateJarFile("C:\\GGTS\\workspace\\ASM_TesteCaller");
-
-	}
 }

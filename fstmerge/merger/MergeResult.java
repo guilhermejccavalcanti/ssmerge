@@ -11,13 +11,21 @@ public class MergeResult {
 		public int linedbasedConfs 	= 0;
 		public int linebasedLOC		= 0;
 		public int linebasedFiles	= 0;
-
+		
+		public int jdimeConfs 	= 0;
+		public int jdimeLOC		= 0;
+		public int jdimeFiles	= 0;
+		
 		public int semanticConfs	= 0;
 		
 		//false positives
 		public int renamingConflictsFromSsmerge = 0;
 		public int renamingConflictsFromParser  = 0;
 		public int orderingConflicts  			= 0;
+		public int consecutiveLinesConflicts 	= 0;
+		public int spacingConflicts 		 	= 0;
+		public int consecutiveLinesAndSpacingConflicts 	 	= 0;
+		public int renamingConflictsAndSpacingFromSsmerge 	= 0;
 		
 		//false negatives
 		public int importIssuesFromSsmergePackagePackage = 0;
@@ -28,4 +36,9 @@ public class MergeResult {
 		
 		public int duplicationIssuesFromSsmerge = 0;
 		public int duplicationIssuesFromParser  = 0;
+		
+		public int editionsToDifferentPartsOfSameStmt = 0;
+		
+		
+		
 }

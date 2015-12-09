@@ -12,7 +12,7 @@ public class MergeVisitor {
 
 	private LinkedList<MergerInterface> mergerList = new LinkedList<MergerInterface>();
 
-	//RENAMING ISSUE
+	//FPFN RENAMING ISSUE
 	private LineBasedMerger lineBasedMerger = null;
 	private DuplicateFreeLinkedList<File> errorFiles = null;
 	private String currentRevision = "";
@@ -33,7 +33,8 @@ public class MergeVisitor {
 			for(MergerInterface merger : getMergerList()) {
 				try {
 					if(((FSTTerminal)current).getBody().contains(FSTGenMerger.MERGE_SEPARATOR)) {
-						//RENAMING ISSUE
+						
+						//FPFN RENAMING ISSUE
 						if((lineBasedMerger == null) && (merger instanceof LineBasedMerger)){
 							this.lineBasedMerger =(LineBasedMerger) merger;
 							((LineBasedMerger)merger).errorFiles = this.errorFiles;		
@@ -55,22 +56,22 @@ public class MergeVisitor {
 		}
 	}
 
-	//RENAMING ISSUE
+	//FPFN RENAMING ISSUE
 	public LineBasedMerger getLineBasedMerger() {
 		return lineBasedMerger;
 	}
 
-	//RENAMING ISSUE
+	//FPFN RENAMING ISSUE
 	public void setLineBasedMerger(LineBasedMerger lineBasedMerger) {
 		this.lineBasedMerger = lineBasedMerger;
 	}
 
-	//RENAMING ISSUE
+	//FPFN RENAMING ISSUE
 	public void setErrorFiles(DuplicateFreeLinkedList<File> errorFiles) {
 		this.errorFiles = errorFiles;
 	}
 
-	//RENAMING ISSUE
+	//FPFN RENAMING ISSUE
 	private String getFileName(FSTNode current) {
 		String fileName = "";
 		if(!(current instanceof FSTNonTerminal)) {
@@ -85,7 +86,7 @@ public class MergeVisitor {
 		return fileName;
 	}
 	
-	//RENAMING ISSUE
+	//FPFN RENAMING ISSUE
 	public void setCurrentRevision (String revision){
 		this.currentRevision = revision;
 	}

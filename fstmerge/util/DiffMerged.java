@@ -89,7 +89,7 @@ public class DiffMerged {
 		BufferedReader buffer 	= new BufferedReader(new InputStreamReader(process.getInputStream()));
 		String currentLine 		= "";
 		while ((currentLine=buffer.readLine())!=null) {
-			//System.out.println(currentLine);
+			System.out.println(currentLine);
 			if(currentLine.matches(hunkPattern)){
 				fileIndicator 		= currentLine.substring(currentLine.length()-1);
 			} else if(currentLine.matches(changePattern1) || currentLine.matches(changePattern2)) {
@@ -183,41 +183,41 @@ public class DiffMerged {
 		return result;
 	}
 
-	//TESTE CODE
-	//	public static void main(String[] args) {
-	//		try {
-	//
-	//			File left 	= new File("examples/left/Teste.java");
-	//			File right 	= new File("examples/right/Teste.java");
-	//			File base 	= new File("examples/base/Teste.java");
-	//
-	//			DiffMerged diffMerged = new DiffMerged();
-	//			ArrayList<ArrayList<String>> linesContributions = diffMerged.findLinesContributions(left, right, base);
-	//			String result = diffMerged.merge(left, base, right);
-	//			result = diffMerged.markLineContributions(linesContributions, result);
-	//
-	//			System.out.println(result);
-	//		} catch (IOException e) {
-	//			e.printStackTrace();
-	//		}
-	//	}
-
-	public static void main(String[] args) {
-		try {
-
-			File left 	= new File("examples/left/Teste.java");
-			File right 	= new File("examples/right/Teste.java");
-			File base 	= new File("examples/base/Teste.java");
-
-			DiffMerged diffMerged = new DiffMerged();
-			ArrayList<ArrayList<String>> linesContributions = diffMerged.findLinesContributionsNonNumeric(left, base, base);
-			//ArrayList<ArrayList<String>> linesContributions = diffMerged.findLinesContributionsTwoWay(base, left);
-			String result = diffMerged.merge(left, base, right);
-			result = diffMerged.markLineContributions(linesContributions, result);
-
-			System.out.println(result);
-		} catch (IOException e) {
-			e.printStackTrace();
+//	//TESTE CODE
+		public static void main(String[] args) {
+			try {
+	
+				File left 	= new File("examples/left/Teste.java");
+				File right 	= new File("examples/right/Teste.java");
+				File base 	= new File("examples/base/Teste.java");
+	
+				DiffMerged diffMerged = new DiffMerged();
+				ArrayList<ArrayList<String>> linesContributions = diffMerged.findLinesContributions(left, right, base);
+				System.out.println(linesContributions);
+				String result = diffMerged.merge(left, base, right);
+				result = diffMerged.markLineContributions(linesContributions, result);
+	
+				System.out.println(result);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-	}
+
+//	public static void main(String[] args) {
+//		try {
+//
+//			File left 	= new File("examples/left/Teste.java");
+//			File right 	= new File("examples/right/Teste.java");
+//			File base 	= new File("examples/base/Teste.java");
+//
+//			DiffMerged diffMerged = new DiffMerged();
+//			ArrayList<ArrayList<String>> linesContributions = diffMerged.findLinesContributionsNonNumeric(left, base, base);
+//			String result = diffMerged.merge(left, base, right);
+//			result = diffMerged.markLineContributions(linesContributions, result);
+//
+//			System.out.println(result);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 }
