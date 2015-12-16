@@ -6,7 +6,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/CIDE_generateAST"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/CIDE2_ast"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fstgen"/>
-	<classpathentry kind="lib" path="C:/Users/Guilherme/.m2/repository/commons-io/commons-io/2.0.1/commons-io-2.0.1.jar">
+	<classpathentry kind="lib" path="C:/Users/Guilherme/.m2/repository/commons-io/commons-io/2.0.1/commons-io-2.0.1.jar" sourcepath="C:/Users/Guilherme/.m2/repository/commons-io/commons-io/2.0.1/commons-io-2.0.1-sources.jar">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 			<attribute name="maven.groupId" value="commons-io"/>
@@ -15,5 +15,6 @@
 			<attribute name="maven.scope" value="compile"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/jdime"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

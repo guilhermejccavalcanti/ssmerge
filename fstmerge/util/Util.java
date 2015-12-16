@@ -10,16 +10,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import merger.MergeResult;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+
+import de.ovgu.cide.fstgen.ast.FSTTerminal;
 
 public class Util {
 
@@ -198,6 +200,70 @@ public class Util {
 		}
 
 	}
+
+	public static boolean contains(LinkedList<LinkedList<String>> list, LinkedList<String> newentry){
+		for(LinkedList<String> entry : list){
+			String file 		= entry.get(0);
+			String newentryfile = newentry.get(0);
+			String methodDeclaration 	= entry.get(1);
+			String newmethodDeclaration = newentry.get(1);
+			if(file.equals(newentryfile) && methodDeclaration.equals(newmethodDeclaration)){
+				return true;
+			} else {
+				continue;
+			}
+		}
+		return false;
+	}
+
+	public static ArrayList<MergeConflict> getConflicts(FSTTerminal node){
+
+		ArrayList<MergeConflict> mergeConflicts = new ArrayList<MergeConflict>();
+		String leftPart  = "";
+		String rightPart = "";
+
+		String CONFLICT_HEADER_BEGIN= "<<<<<<<";
+		String CONFLICT_HEADER_END 	= ">>>>>>>";
+		String CONFLICT_HEADER_MID 	= "=======";
+
+		boolean isConflictOpen		= false;
+		boolean isLeft				= false;
+		boolean isRight				= false;
+
+		String nodeContent 	= node.getBody();
+		Scanner scanner 	= new Scanner(nodeContent);
+
+		String textualConflict = "";
+		FFPNSpacingAndConsecutiveLinesFinder aux = new FFPNSpacingAndConsecutiveLinesFinder();
+
+		while (scanner.hasNextLine()) {
+			String line = scanner.nextLine();
+			if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
+				//textualConflict += line;
+				String[] splittedConflictBody = aux.splitConflictBody(textualConflict);
+				
+				MergeConflict mergeConflict = new MergeConflict("fileName", splittedConflictBody[0], splittedConflictBody[1]);
+				mergeConflicts.add(mergeConflict);
+				
+				//reseting
+				isConflictOpen	= false;
+				textualConflict = "";
+				
+			}
+			if(isConflictOpen){
+				textualConflict += line + "\n";
+			}
+			if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
+				isConflictOpen = true;
+				//textualConflict += line;
+			}
+		}
+		scanner.close();
+
+		return mergeConflicts;
+
+	}
+
 
 	private static String getFileContents(String filePath){
 		String content = "";
@@ -501,6 +567,7 @@ public class Util {
 		}
 	}
 
+	
 	//	public static void main(String[] args) {
 	//
 	//		countConflicts("C:\\Users\\Guilherme\\Desktop\\rename2\\rev.revisions");

@@ -54,6 +54,9 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 		this.conflicts = splitConflictsInsideMethods();
 
 	}
+	
+	public FFPNSpacingAndConsecutiveLinesFinder(){
+	}
 
 	public int getSpacingAndConsecutiveLinesIntersection() {
 		return falsePositivesIntersection;

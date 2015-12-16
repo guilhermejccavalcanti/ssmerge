@@ -1,4 +1,4 @@
-package merger;
+package util;
 
 public class MergeResult {
 		public String projectName	= "";

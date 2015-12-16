@@ -15,5 +15,6 @@
 			<attribute name="maven.scope" value="compile"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/jdime"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

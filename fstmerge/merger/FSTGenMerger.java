@@ -11,8 +11,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import modification.traversalLanguageParser.addressManagement.DuplicateFreeLinkedList;
 
@@ -29,6 +31,8 @@ import printer.pythonm.PythonMergePrintVisitor;
 import printer.textm.TextMergePrintVisitor;
 import util.DiffMerged;
 import util.FPFNCandidates;
+import util.MergeConflict;
+import util.MergeResult;
 import util.Util;
 import builder.ArtifactBuilderInterface;
 import builder.csharp.CSharpBuilder;
@@ -55,10 +59,22 @@ public class FSTGenMerger extends FSTGenProcessor {
 	private static LinkedList<String> importsFromBase  = new LinkedList<String>();
 	private static LinkedList<String> importsFromRight = new LinkedList<String>();
 	private static LinkedList<String> importsFromLeft  = new LinkedList<String>();
+
+	//FPFN
 	private static String currentMergedClass;
 	private static String currentMergedRevisionFilePath;
 	public static MergeResult currentMergeResult;
 
+
+	//FPFN NEW METHOD REFERENCING EDITED METHOD
+	//{file;newMethodDeclaration}
+	private static LinkedList<LinkedList<String>> methodsFromBase  	  = new LinkedList<LinkedList<String>>();
+	private static LinkedList<LinkedList<String>> newMethodsFromRight = new LinkedList<LinkedList<String>>();
+	private static LinkedList<LinkedList<String>> newMethodsFromLeft  = new LinkedList<LinkedList<String>>();
+	//{file;editedMethodDeclaration}
+	public static LinkedList<LinkedList<String>> editedMethodsFromRight = new LinkedList<LinkedList<String>>();
+	public static LinkedList<LinkedList<String>> editedMethodsFromLeft  = new LinkedList<LinkedList<String>>();
+	public static Map<String, ArrayList<MergeConflict>> mapMergeConflicts = new HashMap<String, ArrayList<MergeConflict>>();
 
 	public FSTGenMerger() {
 		super();
@@ -277,6 +293,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			printSpacingNumbers(expressionval);
 			printConsectutiveLinesAndSpacingIntersectionNumbers(expressionval);
 			printEditionsToDifferentPartsOfSameStmtNumbers(expressionval);
+			countAndPrintFalseNegativesNewMethodsReferencingEditedOnes(expressionval);
 
 
 			//			FPFN IMPORT ISSUE NEW
@@ -331,21 +348,22 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 			FSTGenMerger merger = new FSTGenMerger();
 
+			String revision 	= "C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\toys ssmerge\\nwmethoreferdit\\rev.revisions";
 			//String revision 	= "C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\toys ssmerge\\rev_1b433_a6994\\rev_1b433-a6994.revisions";
 			//String revision 	= "C:\\GGTS\\ggts-bundle\\others\\allrevisionstemp\\java_orientdb\\revisions\\rev_0ccab_f0f20\\rev_0ccab-f0f20.revisions";
-			String revision  = "C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\toys ssmerge\\spacingconsec - Cópia\\rev.revisions";
+			//String revision  = "C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\toys ssmerge\\spacingconsec - Cópia\\rev.revisions";
 			currentMergedRevisionFilePath = revision;
 			String files[] 		= {"--expression",revision};
 
 			long t0 = System.currentTimeMillis();
-			//						merger.ignoreEqualFiles(revision);
+			merger.ignoreEqualFiles(revision);
 
 			merger.run(files);
 
 			Util.countConflicts(revision);
-			//			
-			//						merger.restoreEqualFiles(revision);
-			//			
+
+			merger.restoreEqualFiles(revision);
+
 			long tf = System.currentTimeMillis();
 			System.out.println("merge time: " + ((tf-t0)/60000) + " minutes");
 
@@ -433,6 +451,23 @@ public class FSTGenMerger extends FSTGenProcessor {
 							}
 						}
 
+						//FPFN NEW METHOD REFERENCING EDITED METHOD
+						//DOES THE NEW METHOD DECLARATION CAME FROM RIGHT REVISION?
+						if(childB.getType().contains("MethodDecl")){
+							LinkedList<String> entry = new LinkedList<String>();
+							entry.add(LineBasedMerger.getFileAbsolutePath((FSTTerminal) childB)+".java");
+							entry.add(((FSTTerminal)childB).getBody());
+							if (!firstPass) {
+								if(!Util.contains(newMethodsFromRight,entry)){
+									newMethodsFromRight.add(entry);
+								}
+							} else {
+								if(!Util.contains(methodsFromBase,entry)){
+									methodsFromBase.add(entry);
+								}
+							}
+						}
+
 					} else {
 						if (childA.index == -1)
 							childA.index = nodeA.index;
@@ -460,12 +495,15 @@ public class FSTGenMerger extends FSTGenProcessor {
 							baseNodes.add(cloneA);
 						}
 
-						//FPFN IMPORT ISSUE NEW
-						//DOES THE NEW IMPORT DECLARATION CAME FROM LEFT REVISION?
-						if(childA.getType().contains("ImportDeclaration")){
-							String importStatement = currentMergedClass+":"+((FSTTerminal)childA).getBody();
-							if(!importsFromBase.contains(importStatement) && !importsFromLeft.contains(importStatement))
-								importsFromLeft.add(importStatement);
+						//FPFN NEW METHOD REFERENCING EDITED METHOD
+						//DOES THE NEW METHOD DECLARATION CAME FROM LEFT REVISION?
+						if(childA.getType().contains("MethodDecl")){
+							LinkedList<String> entry = new LinkedList<String>();
+							entry.add(currentMergedClass);
+							entry.add(((FSTTerminal)childA).getBody());
+							if(!Util.contains(newMethodsFromLeft,entry)){
+								newMethodsFromLeft.add(entry);
+							}
 						}
 
 					} else {
@@ -634,6 +672,65 @@ public class FSTGenMerger extends FSTGenProcessor {
 	//			}
 	//		}
 	//	}
+
+	//FPFN NEW METHOD REFERENCING EDITED METHOD
+	private void countAndPrintFalseNegativesNewMethodsReferencingEditedOnes(String expressionval) throws IOException {
+		int newMethodsReferencingEditedOnes = 0;
+		for(LinkedList<String> newLeftMethod : newMethodsFromLeft){
+			String leftMethodFile = newLeftMethod.get(0);
+			String leftMethodDeclaration = newLeftMethod.get(1);
+			for(LinkedList<String> editedRightMethod : editedMethodsFromRight){
+				String rightMethodFile = editedRightMethod.get(0);
+				String rightMethodDeclaration = editedRightMethod.get(1);
+				if(leftMethodFile.equals(rightMethodFile)){
+					ArrayList<MergeConflict> mergeConflicts = mapMergeConflicts.get(leftMethodFile);
+					for(MergeConflict mc : mergeConflicts){
+						//TODO: check if newmethod refer editedmethod
+						//TODO: check if conflict contain both methods
+						newMethodsReferencingEditedOnes++;
+					}
+				}
+			}
+		}
+		for(LinkedList<String> newRightMethod : newMethodsFromRight){
+			String rightMethodFile = newRightMethod.get(0);
+			String rightMethodDeclaration = newRightMethod.get(1);
+			for(LinkedList<String> editedLeftMethod : editedMethodsFromLeft){
+				String leftMethodFile = editedLeftMethod.get(0);
+				String lefttMethodDeclaration = editedLeftMethod.get(1);
+				if(rightMethodFile.equals(leftMethodFile)){
+					ArrayList<MergeConflict> mergeConflicts = mapMergeConflicts.get(rightMethodFile);
+					for(MergeConflict mc : mergeConflicts){
+						//TODO: check if newmethod refer editedmethod
+						//TODO: check if conflict contain both methods
+						newMethodsReferencingEditedOnes++;
+					}
+				}
+			}
+		}
+		//printing reports
+		//revision;numbers
+		File file = new File("results/ssmerge_newmethodrefeditone_numbers.csv");
+		if(!file.exists()){
+			file.createNewFile();
+		}
+		FileWriter fw = new FileWriter(file, true);
+		BufferedWriter bw = new BufferedWriter( fw );
+		try{
+			bw.write(expressionval+";"+newMethodsReferencingEditedOnes);
+			
+			//currentMergeResult.renamingConflictsFromSsmerge = this.mergeVisitor.getLineBasedMerger().getCountOfPossibleRenames();
+			
+			bw.newLine();
+			bw.close();
+			fw.close();
+		}catch(Exception e){
+			bw.write(expressionval+";"+0);
+			bw.newLine();
+			bw.close();
+			fw.close();
+		}
+	}
 
 	//FPFN IMPORT ISSUE NEW
 	private ArrayList<String> countAndPrintFalseNegativeImports(String expressionval) {
