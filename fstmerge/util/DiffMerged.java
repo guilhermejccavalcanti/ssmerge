@@ -89,7 +89,7 @@ public class DiffMerged {
 		BufferedReader buffer 	= new BufferedReader(new InputStreamReader(process.getInputStream()));
 		String currentLine 		= "";
 		while ((currentLine=buffer.readLine())!=null) {
-			System.out.println(currentLine);
+			//System.out.println(currentLine);
 			if(currentLine.matches(hunkPattern)){
 				fileIndicator 		= currentLine.substring(currentLine.length()-1);
 			} else if(currentLine.matches(changePattern1) || currentLine.matches(changePattern2)) {

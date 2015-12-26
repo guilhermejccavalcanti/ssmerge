@@ -33,7 +33,7 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 
 	private int falsePositivesIntersection;
 
-	private boolean possibleRenaming;
+	//private boolean possibleRenaming;
 
 	private ArrayList<String> conflicts;
 
@@ -46,15 +46,15 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 		this.conflicts = splitConflictsInsideMethods();
 	}
 
-	public FFPNSpacingAndConsecutiveLinesFinder(FSTTerminal node,String mergetracking, boolean possibleRenaming) {
+	public FFPNSpacingAndConsecutiveLinesFinder(FSTTerminal node,String mergetracking) {
 		this.body = node.getBody();
 		this.nodeType = node.getType();
 		this.mergetracking = mergetracking;
-		this.possibleRenaming = possibleRenaming;
+		//this.possibleRenaming = possibleRenaming;
 		this.conflicts = splitConflictsInsideMethods();
 
 	}
-	
+
 	public FFPNSpacingAndConsecutiveLinesFinder(){
 	}
 
@@ -150,8 +150,10 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 			splitBody[2] = extractLines(temp2);
 		}else{
 			splitBody[1] = "";
-			splitBody[0] = extractLines(s.split("=======")[0].split("\n"));
-			splitBody[2] = extractLines(s.split("=======")[1].split("\n"));
+			//			splitBody[0] = extractLines(s.split("=======")[0].split("\n"));
+			//			splitBody[2] = extractLines(s.split("=======")[1].split("\n"));
+			splitBody[0] = s.split("=======")[0];
+			splitBody[2] = s.split("=======")[1];
 		}
 
 		return splitBody;
@@ -237,7 +239,7 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 		}
 		return foundFixedElement;
 	}
-	
+
 	private void logging(String left, String base, String right, String loggingoption){
 		String line 	= this.mergetracking + ";" + left + ";" + base + ";" + right;
 		String filename = "";
@@ -254,11 +256,18 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 		}
 
 		try {
+			String header = "";
 			File file = new File( "results/"+filename);
-			if(!file.exists()){file.createNewFile();}
+			if(!file.exists()){
+				file.createNewFile();
+				header = "revision;file;methodsignature;leftbody;basebody;rightbody";
+			}
 			FileWriter fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
 			try{
+				if(!header.isEmpty()){
+					bw.write(header);
+				}
 				bw.write(line);
 				bw.newLine();
 				bw.close();
@@ -271,7 +280,7 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void auxCheckFalsePositives(String s) {
 		String [] splitConflictBody = this.splitConflictBody(s);
 		boolean diffSpacing = this.checkDifferentSpacing(splitConflictBody);

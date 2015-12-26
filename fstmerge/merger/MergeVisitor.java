@@ -36,12 +36,12 @@ public class MergeVisitor {
 						
 						//FPFN RENAMING ISSUE
 						if((lineBasedMerger == null) && (merger instanceof LineBasedMerger)){
-							this.lineBasedMerger =(LineBasedMerger) merger;
+							this.lineBasedMerger = (LineBasedMerger) merger;
 							((LineBasedMerger)merger).errorFiles = this.errorFiles;		
 							((LineBasedMerger)merger).currentRevision = this.currentRevision;
 						}
 						String fileName= getFileName((FSTTerminal)current);
-						this.lineBasedMerger.currentFile = fileName;
+						LineBasedMerger.currentFile = fileName;
 
 
 						merger.merge((FSTTerminal)current);

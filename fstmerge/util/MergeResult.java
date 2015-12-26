@@ -26,6 +26,7 @@ public class MergeResult {
 		public int spacingConflicts 		 	= 0;
 		public int consecutiveLinesAndSpacingConflicts 	 	= 0;
 		public int renamingConflictsAndSpacingFromSsmerge 	= 0;
+		public int renamingConflictsFromSsmergeDueToIdentation = 0;
 		
 		//false negatives
 		public int importIssuesFromSsmergePackagePackage = 0;
@@ -38,6 +39,7 @@ public class MergeResult {
 		public int duplicationIssuesFromParser  = 0;
 		
 		public int editionsToDifferentPartsOfSameStmt = 0;
+		public int newMethodsReferencingEditedOnes = 0;
 		
 		
 		
