@@ -150,10 +150,10 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 			splitBody[2] = extractLines(temp2);
 		}else{
 			splitBody[1] = "";
-			//			splitBody[0] = extractLines(s.split("=======")[0].split("\n"));
-			//			splitBody[2] = extractLines(s.split("=======")[1].split("\n"));
-			splitBody[0] = s.split("=======")[0];
-			splitBody[2] = s.split("=======")[1];
+			splitBody[0] = extractLines(s.split("=======")[0].split("\n"));
+			splitBody[2] = extractLines(s.split("=======")[1].split("\n"));
+			//			splitBody[0] = s.split("=======")[0];
+			//			splitBody[2] = s.split("=======")[1];
 		}
 
 		return splitBody;
@@ -260,7 +260,7 @@ public  class FFPNSpacingAndConsecutiveLinesFinder {
 			File file = new File( "results/"+filename);
 			if(!file.exists()){
 				file.createNewFile();
-				header = "revision;file;methodsignature;leftbody;basebody;rightbody";
+				header = "revision;file;methodsignature;leftbody;basebody;rightbody\n";
 			}
 			FileWriter fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );

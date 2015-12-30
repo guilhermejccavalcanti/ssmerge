@@ -6,6 +6,9 @@ public abstract class FSTNode {
 	private FSTNonTerminal parent = null;
 	public int index = -1;
 
+	//FPFN
+	private boolean foundCompatibleNode = false;
+
 	protected FSTNode(String type, String name) {
 		this.setType(type);
 		this.setName(name);
@@ -53,4 +56,16 @@ public abstract class FSTNode {
 			return getParent().getFeatureName();
 		}
 	}
+
+	//FPFN
+	public boolean isFoundCompatibleNode() {
+		return foundCompatibleNode;
+	}
+
+	//FPFN
+	public void setFoundCompatibleNode(boolean foundCompatibleNode) {
+		this.foundCompatibleNode = foundCompatibleNode;
+	}
+	
+	
 }

@@ -37,6 +37,8 @@ public class MergeConflict {
 	}
 
 	public boolean contains(String leftPattern, String rightPattern){
+		leftPattern  = (leftPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+		rightPattern = (rightPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
 		String lefttrim  = (this.left.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
 		String righttrim = (this.right.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
 		return (lefttrim.contains(leftPattern) && righttrim.contains(rightPattern));

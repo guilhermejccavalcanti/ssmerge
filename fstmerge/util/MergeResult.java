@@ -20,7 +20,7 @@ public class MergeResult {
 		
 		//false positives
 		public int renamingConflictsFromSsmerge = 0;
-		public int renamingConflictsFromParser  = 0;
+		public int refToRenamedMethodsFromParser  = 0;
 		public int orderingConflicts  			= 0;
 		public int consecutiveLinesConflicts 	= 0;
 		public int spacingConflicts 		 	= 0;
@@ -39,7 +39,7 @@ public class MergeResult {
 		public int duplicationIssuesFromParser  = 0;
 		
 		public int editionsToDifferentPartsOfSameStmt = 0;
-		public int newMethodsReferencingEditedOnes = 0;
+		public int newArtefactsReferencingEditedOnes = 0;
 		
 		
 		

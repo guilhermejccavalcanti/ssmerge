@@ -30,7 +30,7 @@ public class LineBasedMerger implements MergerInterface {
 	//FPFN RENAMING ISSUE
 	private int countOfPossibleRenames 			= 0;
 	public static DuplicateFreeLinkedList<File> errorFiles 	= null;
-	static String currentFile					= "";
+	public static String currentFile			= "";
 	String currentRevision						= "";
 	Map<String, String> mapRenamingConflicts	= new HashMap<String, String>();
 	private int countOfRenamesDueToIdentation 	= 0;
@@ -38,10 +38,10 @@ public class LineBasedMerger implements MergerInterface {
 	//FPFN DUPLICATED METHOD ISSUE
 	List<String> listDuplicatedMethods			= new ArrayList<String>();
 	private int countOfPossibleDuplications		= 0;
-	
+
 	List<FSTTerminal> possibleDuplications		= new ArrayList<FSTTerminal>();
 
-	
+
 
 	//FPFN
 	int countOfConsecutiveLinesConfs 			  = 0;
@@ -68,10 +68,8 @@ public class LineBasedMerger implements MergerInterface {
 			System.err.println("|"+body+"|");
 			e.printStackTrace();
 		}
-		
-		//FPFN Duplications
-		identifyPossibleDuplications(tokens,node);
-		
+
+
 
 		//System.out.println("|" + tokens[0] + "|");
 		//System.out.println("|" + tokens[1] + "|");
@@ -79,9 +77,11 @@ public class LineBasedMerger implements MergerInterface {
 		//System.out.println("--------------------");
 
 		// SPECIAL CONFLICT HANDLER
-		if(!(node.getType().contains("-Content") ||
-				node.getMergingMechanism().equals("LineBased")
-				)) {
+		if(!(node.getType().contains("-Content") ||	node.getMergingMechanism().equals("LineBased"))) {
+
+			//FPFN NEW ARTEFACT REFERENCING EDITED ONE
+			identifyEditedNodes(tokens,node);
+
 			if(tokens[0].length() == 0 && tokens[1].length() == 0 && tokens[2].length() == 0) {
 				node.setBody("");
 			} else if(tokens[0].equals(tokens[2])) {
@@ -95,11 +95,11 @@ public class LineBasedMerger implements MergerInterface {
 			} else if(tokens[2].equals(tokens[1]) && tokens[0].length() == 0) {
 				node.setBody("");
 			}
+
 			//System.out.println(node.getMergingMechanism());
 			//System.out.println("|" + tokens[1] + "|");
 			//System.out.println("|" + tokens[2] + "|");
 			//System.out.println("--------------------");
-
 
 			return;
 		}
@@ -182,7 +182,7 @@ public class LineBasedMerger implements MergerInterface {
 			}
 
 			//FPFN DUPLICATED ISSUE
-			identifyAndAccountRenamingAndDuplications(node, tokens,true);
+			//identifyAndAccountRenamingAndDuplications(node, tokens,true);
 
 
 			//FPFN SPACING AND CONSECUTIVE LINES
@@ -208,10 +208,15 @@ public class LineBasedMerger implements MergerInterface {
 			//				//Util.countJdimeConflicts(FSTGenMerger.currentMergeResult);			
 			//			}
 
-			//FPFN NEW METHOD REFERENCING EDITED METHOD
+			//FPFN NEW ARTEFACT REFERENCING EDITED ONE
+			if((!hadConflict(node)) && isMethodOrConstructor(node) && isNotErrorFile()){
+				identifyEditedMethodWithoutConflict(node, tokens);
+			}
+
+			//FPFN NEW ARTEFACT REFERENCING EDITED ONE
 			if(node.getType().equals(".java-Content") && isNotErrorFile()){
 				++FSTGenMerger.javaMergedFiles;
-				
+
 				System.out.println("Extracting Conflicts of " + node.getName() + "...");
 				String file = LineBasedMerger.getFileAbsolutePath(node) + ".java";
 				ArrayList<MergeConflict> mergeConflicts = Util.getConflicts(file,node);
@@ -220,10 +225,6 @@ public class LineBasedMerger implements MergerInterface {
 			}
 
 
-			//FPFN NEW METHOD REFERENCING EDITED METHOD
-			if((!hadConflict(node)) && isMethodOrConstructor(node) && isNotErrorFile()){
-				identifyEditedMethodWithoutConflict(node, tokens);
-			}
 
 			buf = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
 			while ((line=buf.readLine())!=null) {
@@ -243,26 +244,36 @@ public class LineBasedMerger implements MergerInterface {
 		}
 	}
 
-	private void identifyPossibleDuplications(String[] tokens, FSTTerminal node) {
+	//FPFN NEW ARTEFACT REFERENCING EDITED ONE
+	private void identifyEditedNodes(String[] tokens, FSTTerminal node) {
 		String left  = tokens[0];
 		String base  = tokens[1];
 		String right = tokens[2];
-		if(!left.isEmpty() && base.isEmpty() && !right.isEmpty()){
-			if(isValidDuplicatedNode(left)){ //or right
-				
+		String mergedfile = LineBasedMerger.getFileAbsolutePath(node) + ".java";
+		if(!left.isEmpty() && !base.isEmpty() && !right.isEmpty()){
+			if(left.equals(base)){
+				if(isValidEditedNode(right)){
+					node.setBody(right);
+					FSTGenMerger.editedNodesFromRight.put(mergedfile,node);
+				}
 			}
-			
+			else if(right.equals(base)){
+				if(isValidEditedNode(left)){
+					node.setBody(left);
+					FSTGenMerger.editedNodesFromLeft.put(mergedfile,node);
+				}
+			}
 		}
-		
 	}
 
-	private boolean isValidDuplicatedNode(String nodeContent) {
+	//FPFN NEW ARTEFACT REFERENCING EDITED ONE
+	private boolean isValidEditedNode(String nodeContent) {
 		String oneLineNodeContent = nodeContent.replaceAll("\\r\\n|\\r|\\n","");
 		int numberOfWordsOfNodeContent = (oneLineNodeContent.split("\\s+")).length;
 		return (numberOfWordsOfNodeContent > 1);
 	}
 
-	//FPFN NEW METHOD REFERENCING EDITED METHOD
+	//FPFN NEW ARTEFACT REFERENCING EDITED ONE
 	private void identifyEditedMethodWithoutConflict(FSTTerminal node,	String[] tokens) {
 		String leftMethodDeclaration 	= tokens[LineBasedMerger.LEFT_CONTENT];
 		String baseMethodDeclaration 	= tokens[LineBasedMerger.BASE_CONTENT];
@@ -289,7 +300,10 @@ public class LineBasedMerger implements MergerInterface {
 		if( 	node.getType().contains("MethodDecl")|| 
 				node.getType().contains("FunctionDefinition") ||
 				node.getType().contains("classsmall_stmt1") ||
+				//node.getType().contains("ConstructorDecl") ||
 				node.getType().contains("class_member_declarationEnd6")){
+
+
 			if(isNotErrorFile()){
 				if(checkDuplications){
 					if(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && tokens[LineBasedMerger.BASE_CONTENT].isEmpty() && !tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()){
@@ -318,14 +332,14 @@ public class LineBasedMerger implements MergerInterface {
 
 						if((tokens[LineBasedMerger.LEFT_CONTENT].isEmpty()) && (Util.isStringsContentEqual(tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.RIGHT_CONTENT]))){
 							this.countOfRenamesDueToIdentation++;
-							
+
 							String renamingIdtEntry 		  = mergedFolder+";"+ file  +";"+methodSignature+";";
-							loggingIdentationRenaming(renamingIdtEntry,tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.RIGHT_CONTENT]);
+							logSpacingRenaming(renamingIdtEntry,tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.RIGHT_CONTENT]);
 						} else if((tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty()) && (Util.isStringsContentEqual(tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.LEFT_CONTENT]))){
 							this.countOfRenamesDueToIdentation++;
 
 							String renamingIdtEntry 		  = mergedFolder+";"+ file  +";"+methodSignature+";";
-							loggingIdentationRenaming(renamingIdtEntry,tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.LEFT_CONTENT]);
+							logSpacingRenaming(renamingIdtEntry,tokens[LineBasedMerger.BASE_CONTENT], tokens[LineBasedMerger.LEFT_CONTENT]);
 						}
 
 						//					//SOLVING CONFLICT FOR BUILD PURPOSES
@@ -404,7 +418,7 @@ public class LineBasedMerger implements MergerInterface {
 	}
 
 	//FPFN IDENTATION RENAMING 
-	private void loggingIdentationRenaming(String mergetracking, String method1, String method2) {
+	private void logSpacingRenaming(String mergetracking, String method1, String method2) {
 		String line 	= mergetracking + ";" + method1 + ";" + method2;
 		try {
 			File file = new File("results/log_ssmerge_identationrenaming.csv");
@@ -438,7 +452,7 @@ public class LineBasedMerger implements MergerInterface {
 
 	//FPFN RENAMING ISSUE
 	private boolean isNotErrorFile(){
-		for(File f: this.errorFiles){
+		for(File f: LineBasedMerger.errorFiles){
 			if(f.getName().equals(LineBasedMerger.currentFile))
 				return false;
 		}
@@ -448,25 +462,13 @@ public class LineBasedMerger implements MergerInterface {
 	//FPFN RENAMING ISSUE
 	private String getMethodSignature(FSTTerminal node){
 		String methodSignarute = "";
-		if( node.getType().contains("MethodDecl")|| 
-				node.getType().contains("FunctionDefinition") ||
-				node.getType().contains("classsmall_stmt1") ||
-				node.getType().contains("class_member_declarationEnd6")){
-
-			methodSignarute = node.getName();
-		}
+		methodSignarute = node.getName();
 		return Util.simplifyMethodSignature(methodSignarute);
 	}
-	
+
 	private String getUnMergeMethodSignature(FSTTerminal node){
 		String methodBody = "";
-		if( node.getType().contains("MethodDecl")|| 
-				node.getType().contains("FunctionDefinition") ||
-				node.getType().contains("classsmall_stmt1") ||
-				node.getType().contains("class_member_declarationEnd6")){
-
-			methodBody = node.getBody();
-		}
+		methodBody = node.getBody();
 		return Util.unMergeMethodSignature((new FFPNSpacingAndConsecutiveLinesFinder()).splitConflictBody(methodBody));
 	}
 
@@ -491,8 +493,7 @@ public class LineBasedMerger implements MergerInterface {
 	//FPFN 
 	private boolean isMethodOrConstructor(FSTTerminal node){
 		String nodeType = node.getType();
-		//	boolean result = nodeType.equals("MethodDecl") || nodeType.equals("ConstructorDecl");	
-		boolean result = nodeType.equals("MethodDecl");	
+		boolean result = nodeType.equals("MethodDecl") || nodeType.equals("ConstructorDecl");	
 		return result;
 	}
 
@@ -500,7 +501,6 @@ public class LineBasedMerger implements MergerInterface {
 	private boolean hadConflict(FSTTerminal node) {
 		return node.getBody().contains(LineBasedMerger.CONFLICT_DELIMITER);
 	}
-
 
 	//FPFN RENAMING ISSUE
 	public int getCountOfPossibleRenames() {
@@ -581,4 +581,3 @@ public class LineBasedMerger implements MergerInterface {
 	}
 
 }
-

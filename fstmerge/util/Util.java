@@ -23,6 +23,9 @@ import merger.FSTGenMerger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
+import com.google.common.collect.Multimap;
+
+import de.ovgu.cide.fstgen.ast.FSTNode;
 import de.ovgu.cide.fstgen.ast.FSTTerminal;
 
 public class Util {
@@ -141,9 +144,9 @@ public class Util {
 		String baseContent 	= getFileContents(filePathBase);
 		String rightContent = getFileContents(filePathRight);
 
-		leftContent = (leftContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-		baseContent = (baseContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-		rightContent = (rightContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+		leftContent  = getSingleLineContentNoSpacing(leftContent);
+		baseContent  = getSingleLineContentNoSpacing(baseContent); 
+		rightContent = getSingleLineContentNoSpacing(rightContent); 
 
 		return (leftContent.equals(baseContent) && rightContent.equals(baseContent));
 	}
@@ -152,15 +155,15 @@ public class Util {
 		String firstContent  = getFileContents(firstFilePath);
 		String secondContent = getFileContents(secondFilePath);
 
-		firstContent = (firstContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-		secondContent = (secondContent.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+		firstContent  = getSingleLineContentNoSpacing(firstContent);
+		secondContent = getSingleLineContentNoSpacing(secondContent);
 
 		return (firstContent.equals(secondContent));
 	}
 
 	public static boolean isStringsContentEqual(String firstString, String secondString){
-		firstString = (firstString.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-		secondString = (secondString.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+		firstString  = getSingleLineContentNoSpacing(firstString);
+		secondString = getSingleLineContentNoSpacing(secondString);
 
 		return (firstString.equals(secondString));
 	}
@@ -490,9 +493,11 @@ public class Util {
 					isConflictOpen = true;
 					if(FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("java")){
 						mergeResult.ssmergeConfs++;
-						FSTGenMerger.javaFilesConfs++;
+						FSTGenMerger.javaFilesConfsSS++;
 					} else if(FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("merge")) {
 						mergeResult.linedbasedConfs++;
+						FSTGenMerger.javaFilesConfsUN++;
+
 					}
 				} else if(line.contains(SEMANTIC_HEADER)) {
 					mergeResult.semanticConfs++;
@@ -725,6 +730,24 @@ public class Util {
 		if(isConflictingFile){
 		}
 	}
+
+	public static String getSingleLineContent(String content) {
+		return (content.replaceAll("\\r\\n|\\r|\\n",""));
+	}
+	
+	public static String getSingleLineContentNoSpacing(String content) {
+		return (content.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+	}
+
+	public static boolean multimapContains(	Multimap<String, FSTNode> entries, String filename, FSTNode node) {
+		for(FSTNode n : entries.get(filename)){
+			if(n.getType().equals(node.getType()) && n.getName().equals(node.getName())){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 
 	//	public static void main(String[] args) {
 	//
