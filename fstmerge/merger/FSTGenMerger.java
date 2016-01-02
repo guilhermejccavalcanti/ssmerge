@@ -468,7 +468,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			//String revision 	= "C:\\GGTS\\ggts-bundle\\workspace\\others\\allrevisionstemp\\java_cassandra\\revisions\\rev_4f3a9_bd889\\rev_4f3a9-bd889.revisions";;
 			//String revision 	= "C:\\GGTS\\workspace\\GitCE\\test\\testinfra\\rev1\\rev1.revisions";
 			//String revision 	= "C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\mh\\rev.revisions";
-			String revision 	= "C:\\Users\\Guilherme\\Desktop\\Nova pasta\\rev.revisions";
+			String revision 	= "/home/ines/Downloads/ggts-bundle/workspace_gjcc/GitCE/test/testinfra/rev1/rev1.revisions";
 			//String revision 	= "C:\\fpfnsample\\java_cassandra\\revisions\\rev_2ce7b_e863c\\rev_2ce7b-e863c.revisions";
 
 

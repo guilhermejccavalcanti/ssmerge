@@ -72,6 +72,11 @@ public class DiffMerged {
 	
 	public  ArrayList<ArrayList<String>> findLinesContributionsNonNumeric(File left, File right, File base) throws IOException {
 		String mergeCmd = "C:/KDiff3/bin/diff3.exe " + "\"" + left.getPath() + "\"" + " " + "\"" + base.getPath() + "\"" + " " + "\"" + right.getPath() + "\"";
+		if(System.getProperty("os.name").contains("Windows")){
+			mergeCmd = "C:/KDiff3/bin/diff3.exe " + "\"" + left.getPath() + "\"" + " " + "\"" + base.getPath() + "\"" + " " + "\"" + right.getPath() + "\"";
+		}else{
+			mergeCmd = "diff3 " + "\"" + left.getPath() + "\"" + " " + "\"" + base.getPath() + "\"" + " " + "\"" + right.getPath() + "\"";
+		}
 		Runtime runTime = Runtime.getRuntime();
 		Process process = runTime.exec(mergeCmd);
 

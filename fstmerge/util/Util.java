@@ -671,7 +671,7 @@ public class Util {
 						if(System.getProperty("os.name").contains("Windows")){
 							mergeCmdOriginal = "C:/KDiff3/bin/diff3.exe -m -E " + "\"" + leftfile.getPath() + "\"" + " " + "\"" + basefile.getPath() + "\"" + " " + "\"" + rightfile.getPath() + "\"";
 						}else{
-							mergeCmdOriginal = "merge -q -p " + leftfile.getPath() + " " + basefile.getPath() + " " + rightfile.getPath();
+							mergeCmdOriginal = "diff3 -m -E " + leftfile.getPath() + " " + basefile.getPath() + " " + rightfile.getPath();
 						}
 						Runtime run = Runtime.getRuntime();
 						Process pr 	= run.exec(mergeCmdOriginal);
@@ -814,7 +814,7 @@ public class Util {
 	//
 	//		// String str ="public int soma(int a, int c) throws Exception {";
 	//		String str = "<T, S extends T> int copy(List<T> dest, List<S> src) {";
-	//		// PEGANDO A ASSINATURA DO MÉTODO
+	//		// PEGANDO A ASSINATURA DO Mï¿½TODO
 	//		String methodSignature = getMethodSignature(str);
 	//		String returnType = getMethodReturnType(methodSignature);
 	//		System.out.println(returnType);
