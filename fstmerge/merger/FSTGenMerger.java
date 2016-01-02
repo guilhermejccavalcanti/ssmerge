@@ -430,69 +430,70 @@ public class FSTGenMerger extends FSTGenProcessor {
 			//			LoggerPrintStream tee = new LoggerPrintStream(f, System.out);
 			//			System.setOut(tee);
 			//
-			//						FileInputStream stream 	 = new FileInputStream("C:\\fpfnsample\\java.revisions");
-			//						InputStreamReader reader = new InputStreamReader(stream);
-			//						BufferedReader br 	= new BufferedReader(reader);
-			//						String line 	 	= br.readLine();
-			//						while(line != null){
-			//							FSTGenMerger merger 			= new FSTGenMerger();
-			//							String file 					= line;
-			//							currentMergedRevisionFilePath 	= line;
-			//							String files[] 	= {"--expression",file};
-			//			
-			//							long t0 = System.currentTimeMillis();
-			//							merger.ignoreEqualFiles(currentMergedRevisionFilePath);
-			//							merger.ignoreNonJavaFiles(currentMergedRevisionFilePath);
-			//			
-			//							merger.run(files);
-			//			
-			//							Util.countConflicts(currentMergedRevisionFilePath);
-			//			
-			//							merger.restoreEqualFiles(currentMergedRevisionFilePath);
-			//			
-			//							long tf = System.currentTimeMillis();
-			//							long mergeTime =  ((tf-t0)/60000);
-			//							System.out.println("merge time: " + mergeTime + " minutes");
-			//			
-			//							Util.unMergeNonJavaFiles(currentMergedRevisionFilePath);
-			//							merger.logFilesStatistics(currentMergedRevisionFilePath,mergeTime);
-			//							merger.resetFields();
-			//			
-			//							line = br.readLine();
-			//						}
-			//						br.close();
+
+			FileInputStream stream 	 = new FileInputStream("/home/ines/gjcc/fpfnanalysis/samplerpl/java.revisions");
+			InputStreamReader reader = new InputStreamReader(stream);
+			BufferedReader br 	= new BufferedReader(reader);
+			String line 	 	= br.readLine();
+			while(line != null){
+				FSTGenMerger merger 			= new FSTGenMerger();
+				String file 					= line;
+				currentMergedRevisionFilePath 	= line;
+				String files[] 	= {"--expression",file};
+
+				long t0 = System.currentTimeMillis();
+				merger.ignoreEqualFiles(currentMergedRevisionFilePath);
+				merger.ignoreNonJavaFiles(currentMergedRevisionFilePath);
+
+				merger.run(files);
+
+				Util.countConflicts(currentMergedRevisionFilePath);
+
+				merger.restoreEqualFiles(currentMergedRevisionFilePath);
+
+				long tf = System.currentTimeMillis();
+				long mergeTime =  ((tf-t0)/60000);
+				System.out.println("merge time: " + mergeTime + " minutes");
+
+				Util.unMergeNonJavaFiles(currentMergedRevisionFilePath);
+				merger.logFilesStatistics(currentMergedRevisionFilePath,mergeTime);
+				merger.resetFields();
+
+				line = br.readLine();
+			}
+			br.close();
 
 
-			FSTGenMerger merger = new FSTGenMerger();
-
-			//String revision 	= "C:\\GGTS\\ggts-bundle\\workspace\\others\\allrevisionstemp\\java_cassandra\\revisions\\rev_4f3a9_bd889\\rev_4f3a9-bd889.revisions";;
-			//String revision 	= "C:\\GGTS\\workspace\\GitCE\\test\\testinfra\\rev1\\rev1.revisions";
-			//String revision 	= "C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\mh\\rev.revisions";
-			String revision 	= "/home/ines/Downloads/ggts-bundle/workspace_gjcc/GitCE/test/testinfra/rev1/rev1.revisions";
-			//String revision 	= "C:\\fpfnsample\\java_cassandra\\revisions\\rev_2ce7b_e863c\\rev_2ce7b-e863c.revisions";
-
-
-			currentMergedRevisionFilePath = revision;
-			String files[] 		= {"--expression",revision};
-
-			long t0 = System.currentTimeMillis();
-			merger.ignoreEqualFiles(revision);
-
-			merger.ignoreNonJavaFiles(revision);
-
-			merger.run(files);
-
-			Util.countConflicts(revision);
-
-			merger.restoreEqualFiles(revision);	
-
-			long tf = System.currentTimeMillis();
-			long mergeTime =  ((tf-t0)/60000);
-			System.out.println("merge time: " + mergeTime + " minutes");
-
-			Util.unMergeNonJavaFiles(revision);
-			merger.logFilesStatistics(revision,mergeTime);
-			merger.resetFields();
+			//			FSTGenMerger merger = new FSTGenMerger();
+			//
+			//			//String revision 	= "C:\\GGTS\\ggts-bundle\\workspace\\others\\allrevisionstemp\\java_cassandra\\revisions\\rev_4f3a9_bd889\\rev_4f3a9-bd889.revisions";;
+			//			//String revision 	= "C:\\GGTS\\workspace\\GitCE\\test\\testinfra\\rev1\\rev1.revisions";
+			//			//String revision 	= "C:\\Users\\Guilherme\\Desktop\\Itens Recentes\\mh\\rev.revisions";
+			//			String revision 	= "/home/ines/Downloads/ggts-bundle/workspace_gjcc/GitCE/test/testinfra/rev1/rev1.revisions";
+			//			//String revision 	= "C:\\fpfnsample\\java_cassandra\\revisions\\rev_2ce7b_e863c\\rev_2ce7b-e863c.revisions";
+			//
+			//
+			//			currentMergedRevisionFilePath = revision;
+			//			String files[] 		= {"--expression",revision};
+			//
+			//			long t0 = System.currentTimeMillis();
+			//			merger.ignoreEqualFiles(revision);
+			//
+			//			merger.ignoreNonJavaFiles(revision);
+			//
+			//			merger.run(files);
+			//
+			//			Util.countConflicts(revision);
+			//
+			//			merger.restoreEqualFiles(revision);	
+			//
+			//			long tf = System.currentTimeMillis();
+			//			long mergeTime =  ((tf-t0)/60000);
+			//			System.out.println("merge time: " + mergeTime + " minutes");
+			//
+			//			Util.unMergeNonJavaFiles(revision);
+			//			merger.logFilesStatistics(revision,mergeTime);
+			//			merger.resetFields();
 
 
 		} catch (RuntimeException ru){
@@ -579,7 +580,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 						if (childB.index == -1)
 							childB.index = nodeB.index;
 
-					
+
 						// there is no need ??
 						//						//FPFN
 						//						if(isTypeValidAddedNode(childA) && !firstPass){
@@ -1534,7 +1535,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 	//FPFN SPACING ISSUE
 	private void printSpacingNumbers(String expressionval) throws IOException {
-		int spacings = this.mergeVisitor.getLineBasedMerger().getCountOfSpacingConfs() + this.mergeVisitor.getLineBasedMerger().getCountOfRenamesDueToIdentation();
 		String header = "";
 		File file = new File( "results/ssmerge_spacing_numbers.csv" );
 		if(!file.exists()){
@@ -1544,6 +1544,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 		FileWriter fw = new FileWriter(file, true);
 		BufferedWriter bw = new BufferedWriter( fw );
 		try{
+			int spacings = this.mergeVisitor.getLineBasedMerger().getCountOfSpacingConfs() + this.mergeVisitor.getLineBasedMerger().getCountOfRenamesDueToIdentation();
 			if(!header.isEmpty()){
 				bw.write(header+"\n");
 			}
