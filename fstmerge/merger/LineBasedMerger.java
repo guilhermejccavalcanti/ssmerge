@@ -48,6 +48,7 @@ public class LineBasedMerger implements MergerInterface {
 	int countOfSpacingConfs 					  = 0;
 	int countOfConsecutiveLinesAndSpacingConfs 	  = 0;
 	int countOfEditionsToDifferentPartsOfSameStmt = 0;
+	boolean hadRenaming							  = false;
 
 
 	static final String CONFLICT_DELIMITER 	= "<<<<<";
@@ -186,8 +187,9 @@ public class LineBasedMerger implements MergerInterface {
 
 
 			//FPFN SPACING AND CONSECUTIVE LINES
-			node.setBody(resultInclBase);
-			if(hadConflict(node) && isMethodOrConstructor(node) && isNotErrorFile()){
+			if(hadConflict(node) && !hadRenaming && isMethodOrConstructor(node) && isNotErrorFile()){
+				node.setBody(resultInclBase);
+
 				//logging info
 				String signature  	  = this.getMethodSignature(node);
 				String mergetracking  = ((this.getMergedFolder()).replaceAll("/", Matcher.quoteReplacement(File.separator))) + ";"+ LineBasedMerger.getFileAbsolutePath(node)+";"+signature;
@@ -197,6 +199,8 @@ public class LineBasedMerger implements MergerInterface {
 				this.countOfConsecutiveLinesConfs 			+= finder.getConsecutiveLines();
 				this.countOfSpacingConfs 					+= finder.getDifferentSpacing();
 				this.countOfConsecutiveLinesAndSpacingConfs += finder.getSpacingAndConsecutiveLinesIntersection();
+				
+				this.hadRenaming = false;
 			}
 
 			node.setBody(resultOriginal);
@@ -250,14 +254,19 @@ public class LineBasedMerger implements MergerInterface {
 		String base  = tokens[1];
 		String right = tokens[2];
 		String mergedfile = LineBasedMerger.getFileAbsolutePath(node) + ".java";
-		if(!left.isEmpty() && !base.isEmpty() && !right.isEmpty()){
-			if(left.equals(base)){
+		
+		String lefttrim 	= Util.getSingleLineContentNoSpacing(left);
+		String basetrim 	= Util.getSingleLineContentNoSpacing(base);
+		String righttrim 	= Util.getSingleLineContentNoSpacing(right);
+		
+		if(!lefttrim.isEmpty() && !basetrim.isEmpty() && !righttrim.isEmpty()){
+			if(lefttrim.equals(basetrim) && !righttrim.equals(lefttrim)){ 		//left == base != right
 				if(isValidEditedNode(right)){
 					node.setBody(right);
 					FSTGenMerger.editedNodesFromRight.put(mergedfile,node);
 				}
 			}
-			else if(right.equals(base)){
+			else if(righttrim.equals(basetrim) && !lefttrim.equals(righttrim)){//left != base == right
 				if(isValidEditedNode(left)){
 					node.setBody(left);
 					FSTGenMerger.editedNodesFromLeft.put(mergedfile,node);
@@ -320,6 +329,7 @@ public class LineBasedMerger implements MergerInterface {
 							(!tokens[LineBasedMerger.LEFT_CONTENT].isEmpty() && !tokens[LineBasedMerger.BASE_CONTENT].isEmpty() &&  tokens[LineBasedMerger.RIGHT_CONTENT].isEmpty())	){
 
 						this.countOfPossibleRenames++;
+						this.hadRenaming = true;
 
 						String methodSignature 		  = this.getMethodSignature(node);
 						String unMergeMethodSignature = this.getUnMergeMethodSignature(node);

@@ -8,26 +8,26 @@ package util;
  */
 
 public class MergeConflict {
-	
+
 	private String fileName;
 	private String left;
 	private String base;
 	private String right;
 	private String body;
-	
+
 	public MergeConflict(String fileName, String left, String base, String right) {
 		this.fileName = fileName;
 		this.left 	= left;
 		this.right 	= right;
 		this.base 	= base;
 	}
-	
+
 	public MergeConflict(String fileName, String left, String right) {
 		this.left = left;
 		this.right = right;
 		this.fileName = fileName;
 	}
-	
+
 	public MergeConflict(String fileName, String left, String base, String right, String conflict) {
 		this.fileName = fileName;
 		this.left 	= left;
@@ -37,13 +37,35 @@ public class MergeConflict {
 	}
 
 	public boolean contains(String leftPattern, String rightPattern){
-		leftPattern  = (leftPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-		rightPattern = (rightPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-		String lefttrim  = (this.left.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-		String righttrim = (this.right.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-		return (lefttrim.contains(leftPattern) && righttrim.contains(rightPattern));
+		if(leftPattern.isEmpty() || rightPattern.isEmpty()){
+			return false;
+		} else {
+			leftPattern  = (leftPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+			rightPattern = (rightPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+			String lefttrim  = (this.left.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+			String righttrim = (this.right.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+			return (lefttrim.contains(leftPattern) && righttrim.contains(rightPattern));
+		}
 	}
 	
+	public boolean containsRelaxed(String leftPattern, String rightPattern){
+		if(leftPattern.isEmpty() || rightPattern.isEmpty()){
+			return false;
+		} else {
+			leftPattern  	 = (leftPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+			rightPattern 	 = (rightPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+			String lefttrim  = (this.left.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+			String righttrim = (this.right.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
+			
+			leftPattern 	= Util.removeReservedKeywords(leftPattern);
+			rightPattern 	= Util.removeReservedKeywords(rightPattern);
+			lefttrim 		= Util.removeReservedKeywords(lefttrim);
+			righttrim 		= Util.removeReservedKeywords(righttrim);
+			
+			return (lefttrim.contains(leftPattern) && righttrim.contains(rightPattern));
+		}
+	}
+
 	public String getLeft() {
 		return left;
 	}
@@ -75,7 +97,7 @@ public class MergeConflict {
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}	
-	
+
 	public String getBody() {
 		return body;
 	}

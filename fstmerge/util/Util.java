@@ -199,7 +199,7 @@ public class Util {
 				currentMergeResult.jdimeConfs += Integer.valueOf(stats[0]);
 				currentMergeResult.jdimeLOC   += Integer.valueOf(stats[1]);
 				currentMergeResult.jdimeFiles += Integer.valueOf(stats[2]);		
-				
+
 				//FileUtils.forceDelete(tempFile);
 				tempFile.setWritable(true);
 				tempFile.delete();
@@ -240,7 +240,11 @@ public class Util {
 
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine();
-			if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
+			//if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
+			if(line.contains(CONFLICT_HEADER_END)) {
+
+				textualConflict += CONFLICT_HEADER_END;
+
 				String[] splittedConflictBody = aux.splitConflictBody(textualConflict);
 
 				MergeConflict mergeConflict = new MergeConflict(fileName, splittedConflictBody[0], null,splittedConflictBody[2],textualConflict);
@@ -254,8 +258,11 @@ public class Util {
 			if(isConflictOpen){
 				textualConflict += line + "\n";
 			}
-			if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
+			//if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
+			if(line.contains(CONFLICT_HEADER_BEGIN)){
+
 				isConflictOpen = true;
+				textualConflict += CONFLICT_HEADER_BEGIN+"\n";
 			}
 		}
 		scanner.close();
@@ -476,7 +483,8 @@ public class Util {
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(f.getAbsolutePath())));   
 			String line;
 			while ((line = bufferedReader.readLine()) != null) {
-				if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
+				//if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
+				if(line.contains(CONFLICT_HEADER_END)) {
 					isConflictOpen	= false;
 				}
 
@@ -488,7 +496,9 @@ public class Util {
 					}
 				}
 
-				if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
+				//if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
+				if(line.contains(CONFLICT_HEADER_BEGIN)){
+
 					isConflictingFile = true;
 					isConflictOpen = true;
 					if(FilenameUtils.getExtension(f.getAbsolutePath()).equalsIgnoreCase("java")){
@@ -527,13 +537,15 @@ public class Util {
 		Scanner scanner = new Scanner(fileContent);
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine();
-			if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
+			//if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
+			if(line.contains(CONFLICT_HEADER_END)) {
 				isConflictOpen	= false;
 			}
 			if(isConflictOpen){
 				mergeResult.jdimeLOC++;
 			}
-			if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
+			//if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_BEGIN)){
+			if(line.contains(CONFLICT_HEADER_BEGIN)){
 				isConflictingFile = true;
 				isConflictOpen = true;
 				mergeResult.jdimeConfs++;
@@ -679,7 +691,7 @@ public class Util {
 						leftfile.delete();
 						basefile.delete();
 						rightfile.delete();
-						
+
 						//						FileUtils.forceDelete(leftfile);
 						//						FileUtils.forceDelete(basefile);
 						//						FileUtils.forceDelete(rightfile);
@@ -734,7 +746,7 @@ public class Util {
 	public static String getSingleLineContent(String content) {
 		return (content.replaceAll("\\r\\n|\\r|\\n",""));
 	}
-	
+
 	public static String getSingleLineContentNoSpacing(String content) {
 		return (content.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
 	}
@@ -747,7 +759,47 @@ public class Util {
 		}
 		return false;
 	}
-	
+
+	public static String removeReservedKeywords(String str) {
+		//		String[] keywords = {
+		//				"assert",
+		//				"abstract", "boolean", "break", "byte",
+		//				"case", "catch", "char", "class",
+		//				"const", "continue", "default", "do",
+		//				"double", "else", "extends", "final",
+		//				"finally", "float", "for", "goto",
+		//				"if", "implements", "import",
+		//				"instanceof", "int", "interface",
+		//				"long", "native", "new", "package",
+		//				"private", "protected", "public",
+		//				"return", "short", "static", "super",
+		//				"switch", "synchronized", "this",
+		//				"throw", "throws", "transient",
+		//				"try", "void", "volatile", "while"
+		//		};
+		
+		String[] keywords = {
+				"assert",
+				"abstract", 
+				"class",
+				"const",
+				"extends", 
+				"final",
+				"implements",
+				"interface",
+				"native",
+				"private", "protected", "public",
+				"static", "synchronized", "this",
+				"throw", "throws", "transient",
+				"volatile"
+		};
+		
+		for (int i = 0; i < keywords.length; ++i) {
+			str  = str.replaceAll(keywords[i], "");
+		}
+		return str;
+	}
+
 
 	//	public static void main(String[] args) {
 	//
