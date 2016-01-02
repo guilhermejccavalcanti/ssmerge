@@ -8,6 +8,7 @@ public abstract class FSTNode {
 
 	//FPFN
 	private boolean foundCompatibleNode = false;
+	private FSTNode compatibleNode 		= null;
 
 	protected FSTNode(String type, String name) {
 		this.setType(type);
@@ -37,18 +38,19 @@ public abstract class FSTNode {
 	public FSTNonTerminal getParent() {
 		return parent;
 	}
-	
+
 	public boolean compatibleWith(FSTNode node) {
 		return this.getType().equals(node.getType()) && this.getName().equals(node.getName());
 	}
-	
+
 	public abstract FSTNode getShallowClone() ;
+
 	public abstract FSTNode getDeepClone() ;
-	
+
 	public abstract String printFST(int i) ;
-	
+
 	public abstract void accept(FSTVisitor visitor);
-	
+
 	public String getFeatureName() {
 		if (getType().equals("Feature")) {
 			return getName();
@@ -66,6 +68,19 @@ public abstract class FSTNode {
 	public void setFoundCompatibleNode(boolean foundCompatibleNode) {
 		this.foundCompatibleNode = foundCompatibleNode;
 	}
-	
-	
+
+
+	//FPFN
+	public FSTNode getCompatibleNode() {
+		return compatibleNode;
+	}
+	//FPFN
+
+	public void setCompatibleNode(FSTNode compatibleNode) {
+		//if(this.compatibleNode == null){
+			this.compatibleNode = compatibleNode;
+		//}
+	}
+
+
 }
