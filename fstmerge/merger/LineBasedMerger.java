@@ -463,8 +463,9 @@ public class LineBasedMerger implements MergerInterface {
 
 	//FPFN RENAMING ISSUE
 	private boolean isNotErrorFile(){
+		String fileName = LineBasedMerger.currentFile.replaceAll(".merge","");
 		for(File f: LineBasedMerger.errorFiles){
-			if(f.getName().equals(LineBasedMerger.currentFile))
+			if(f.getName().equals(fileName))
 				return false;
 		}
 		return true;

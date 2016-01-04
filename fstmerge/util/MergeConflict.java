@@ -30,8 +30,8 @@ public class MergeConflict {
 
 	public MergeConflict(String fileName, String left, String base, String right, String conflict) {
 		this.fileName = fileName;
-		this.left 	= left;
-		this.right 	= right;
+		this.left 	= left.replaceAll("<<<<<<<","");
+		this.right 	= right.replaceAll(">>>>>>>", "");
 		this.base 	= base;
 		this.body 	= conflict;
 	}

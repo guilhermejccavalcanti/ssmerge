@@ -150,13 +150,14 @@ public abstract class AbstractFSTPrintVisitor extends FSTVisitor {
 	protected FSTNode getChild(FSTNonTerminal nonTerminal, String childType) {
 		List<FSTNode> result = getChildren(nonTerminal, childType);
 		if (result.size() > 1) {
-			throw new RuntimeException(
+/*			throw new RuntimeException(
 					"Cannot handle multple FST nodes of type " + childType
 							+ " here (" + result.get(0).getName() + ":"
 							+ result.get(0).getType() + " and "
 							+ result.get(1).getName() + ":"
 							+ result.get(0).getType() + " parent: "
-							+ nonTerminal.toString() + ")");
+							+ nonTerminal.toString() + ")");*/
+			return result.get(0);
 		}
 		if (result.size() == 1)
 			return result.get(0);

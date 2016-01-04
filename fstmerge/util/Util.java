@@ -242,18 +242,23 @@ public class Util {
 			String line = scanner.nextLine();
 			//if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
 			if(line.contains(CONFLICT_HEADER_END)) {
+				try{
+					
+					textualConflict += "\n";
 
-				textualConflict += CONFLICT_HEADER_END;
+					String[] splittedConflictBody = aux.splitConflictBody(textualConflict);
 
-				String[] splittedConflictBody = aux.splitConflictBody(textualConflict);
+					MergeConflict mergeConflict = new MergeConflict(fileName, splittedConflictBody[0], null,splittedConflictBody[2],textualConflict);
+					mergeConflicts.add(mergeConflict);
 
-				MergeConflict mergeConflict = new MergeConflict(fileName, splittedConflictBody[0], null,splittedConflictBody[2],textualConflict);
-				mergeConflicts.add(mergeConflict);
-
-				//reseting
-				isConflictOpen	= false;
-				textualConflict = "";
-
+					//reseting
+					isConflictOpen	= false;
+					textualConflict = "";
+				
+				}catch(Exception e){
+					e.printStackTrace();
+					break; //in case of having errors on the file, ignore the rest of the file
+				}
 			}
 			if(isConflictOpen){
 				textualConflict += line + "\n";
@@ -262,7 +267,7 @@ public class Util {
 			if(line.contains(CONFLICT_HEADER_BEGIN)){
 
 				isConflictOpen = true;
-				textualConflict += CONFLICT_HEADER_BEGIN+"\n";
+				textualConflict += "\n";
 			}
 		}
 		scanner.close();
@@ -295,7 +300,7 @@ public class Util {
 			}
 			reader.close();
 			content = fileData.toString();	
-		} catch (IOException e) {return content;} 
+		} catch (Exception e) {return content;} 
 		return content;
 	}
 
@@ -657,12 +662,15 @@ public class Util {
 
 
 						if(!basefile.exists()){
+							basefile.mkdirs();
 							basefile.createNewFile();
 						}
 						if(!rightfile.exists()){
+							rightfile.mkdirs();
 							rightfile.createNewFile();
 						}
 						if(!leftfile.exists()){
+							leftfile.mkdirs();
 							leftfile.createNewFile();
 						}
 
@@ -777,7 +785,7 @@ public class Util {
 		//				"throw", "throws", "transient",
 		//				"try", "void", "volatile", "while"
 		//		};
-		
+
 		String[] keywords = {
 				"assert",
 				"abstract", 
@@ -793,7 +801,7 @@ public class Util {
 				"throw", "throws", "transient",
 				"volatile"
 		};
-		
+
 		for (int i = 0; i < keywords.length; ++i) {
 			str  = str.replaceAll(keywords[i], "");
 		}
