@@ -288,6 +288,10 @@ public class LineBasedMerger implements MergerInterface {
 		String leftMethodDeclaration 	= tokens[LineBasedMerger.LEFT_CONTENT];
 		String baseMethodDeclaration 	= tokens[LineBasedMerger.BASE_CONTENT];
 		String rightMethodDeclaration 	= tokens[LineBasedMerger.RIGHT_CONTENT];
+		
+		leftMethodDeclaration = Util.getSingleLineContentNoSpacing(leftMethodDeclaration);
+		baseMethodDeclaration = Util.getSingleLineContentNoSpacing(baseMethodDeclaration);
+		rightMethodDeclaration= Util.getSingleLineContentNoSpacing(rightMethodDeclaration);
 
 		LinkedList<String> entry = new LinkedList<String>();
 		entry.add(LineBasedMerger.getFileAbsolutePath(node)+".java");

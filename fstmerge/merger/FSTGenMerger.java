@@ -65,7 +65,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 	private MergeVisitor mergeVisitor = new MergeVisitor();
 
-	private void initFields(){
+	public void initFields(){
 		importsFromBase  = new LinkedList<String>();
 		importsFromRight = new LinkedList<String>();
 		importsFromLeft  = new LinkedList<String>();
@@ -410,7 +410,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			//			candidates.duplicatedCandidates	= printListOfDuplications();	
 
 			//FPFN DUPLICATIONS ISSUE NEW
-			countAndPrintFalseNegativeDuplications(expressionval);
+			candidates.duplicatedCandidates = countAndPrintFalseNegativeDuplications(expressionval);
 
 			setFstnodes(AbstractFSTParser.fstnodes);
 
@@ -807,18 +807,19 @@ public class FSTGenMerger extends FSTGenProcessor {
 					for(FSTNode editedRightNode : editedNodesFromRight.get(unmergedFile)){
 						String editedRightNodeContent = (editedRightNode instanceof FSTTerminal)?(((FSTTerminal)editedRightNode).getBody()):(prettyPrint((FSTNonTerminal)editedRightNode));
 						String editedRightNodeIdentif = editedRightNode.getName();
-						if(referGeneralNAREO(newLeftNodeContet,editedRightNodeIdentif)){//FIXME
+						if(referGeneralNAREO(newLeftNodeContet,editedRightNodeIdentif)){
 							ArrayList<MergeConflict> mergeConflicts = mapMergeConflicts.get(unmergedFile);
-							for(MergeConflict mc : mergeConflicts){
-								if(conflictContainsNAREO(mc,newLeftNodeContet,editedRightNodeContent, true)){
-									newArtefactReferencingOldOne++;
+							if(null != mergeConflicts){
+								for(MergeConflict mc : mergeConflicts){
+									if(conflictContainsNAREO(mc,newLeftNodeContet,editedRightNodeContent, true)){
+										newArtefactReferencingOldOne++;
 
-									String logEntry = expressionval+";"+unmergedFile+";"+newLeftNodeContet+";"+editedRightNodeContent +";"+mc.getBody();
-									logEntries.add(logEntry);
+										String logEntry = expressionval+";"+unmergedFile+";"+newLeftNodeContet+";"+editedRightNodeContent +";"+mc.getBody();
+										logEntries.add(logEntry);
+									}
 								}
 							}
 						}
-
 					}
 				}
 			}
@@ -835,18 +836,19 @@ public class FSTGenMerger extends FSTGenProcessor {
 					for(FSTNode editedLeftNode : editedNodesFromLeft.get(unmergedFile)){
 						String editedLeftNodeContent = (editedLeftNode instanceof FSTTerminal)?(((FSTTerminal)editedLeftNode).getBody()):(prettyPrint((FSTNonTerminal)editedLeftNode));
 						String editedLeftNodeIdentif = editedLeftNode.getName();
-						if(referGeneralNAREO(newRightNodeContet,editedLeftNodeIdentif)){//FIXME
+						if(referGeneralNAREO(newRightNodeContet,editedLeftNodeIdentif)){
 							ArrayList<MergeConflict> mergeConflicts = mapMergeConflicts.get(unmergedFile);
-							for(MergeConflict mc : mergeConflicts){
-								if(conflictContainsNAREO(mc,newRightNodeContet,editedLeftNodeContent, false)){
-									newArtefactReferencingOldOne++;
+							if(null != mergeConflicts){
+								for(MergeConflict mc : mergeConflicts){
+									if(conflictContainsNAREO(mc,newRightNodeContet,editedLeftNodeContent, false)){
+										newArtefactReferencingOldOne++;
 
-									String logEntry = expressionval+";"+unmergedFile+";"+newRightNodeContet+";"+editedLeftNodeContent+";"+mc.getBody();
-									logEntries.add(logEntry);
+										String logEntry = expressionval+";"+unmergedFile+";"+newRightNodeContet+";"+editedLeftNodeContent+";"+mc.getBody();
+										logEntries.add(logEntry);
+									}
 								}
 							}
 						}
-
 					}
 				}
 			}
@@ -863,7 +865,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 	}
 
 	//FPFN NEW ARTEFACT REFERENCING EDITED ONE
-	private int countAndPrintFalseNegativesNewMethodsReferencingEditedOnes(String expressionval, List<String> logEntries) throws IOException {
+	private int countAndPrintFalseNegativesNewMethodsReferencingEditedOnes(String expressionval, List<String> logEntries)   {
 		int newMethodsReferencingEditedOnes = 0;
 		for(LinkedList<String> newLeftMethod : newMethodsFromLeft){
 			String leftMethodFile = newLeftMethod.get(0);
@@ -877,12 +879,14 @@ public class FSTGenMerger extends FSTGenProcessor {
 						String unmergedFile = leftMethodFile; //or rightMethodFile
 						if(isClassAllowed(unmergedFile)){
 							ArrayList<MergeConflict> mergeConflicts = mapMergeConflicts.get(unmergedFile);
-							for(MergeConflict mc : mergeConflicts){
-								if(conflictContainsNAREO(mc,leftMethodDeclaration,rightMethodDeclaration, true)){
-									newMethodsReferencingEditedOnes++;
+							if(null != mergeConflicts){
+								for(MergeConflict mc : mergeConflicts){
+									if(conflictContainsNAREO(mc,leftMethodDeclaration,rightMethodDeclaration, true)){
+										newMethodsReferencingEditedOnes++;
 
-									String logEntry = expressionval+";"+unmergedFile+";"+leftMethodDeclaration+";"+rightMethodDeclaration+";"+mc.getBody();
-									logEntries.add(logEntry);
+										String logEntry = expressionval+";"+unmergedFile+";"+leftMethodDeclaration+";"+rightMethodDeclaration+";"+mc.getBody();
+										logEntries.add(logEntry);
+									}
 								}
 							}
 						}
@@ -902,12 +906,14 @@ public class FSTGenMerger extends FSTGenProcessor {
 						String unmergedFile = rightMethodFile; //or leftMethodFile
 						if(isClassAllowed(unmergedFile)){
 							ArrayList<MergeConflict> mergeConflicts = mapMergeConflicts.get(unmergedFile);
-							for(MergeConflict mc : mergeConflicts){
-								if(conflictContainsNAREO(mc,rightMethodDeclaration,leftMethodDeclaration,false)){
-									newMethodsReferencingEditedOnes++;
+							if(null != mergeConflicts){
+								for(MergeConflict mc : mergeConflicts){
+									if(conflictContainsNAREO(mc,rightMethodDeclaration,leftMethodDeclaration,false)){
+										newMethodsReferencingEditedOnes++;
 
-									String logEntry = expressionval+";"+unmergedFile+";"+leftMethodDeclaration+";"+rightMethodDeclaration+";"+mc.getBody();
-									logEntries.add(logEntry);
+										String logEntry = expressionval+";"+unmergedFile+";"+leftMethodDeclaration+";"+rightMethodDeclaration+";"+mc.getBody();
+										logEntries.add(logEntry);
+									}
 								}
 							}
 						}
@@ -1140,9 +1146,9 @@ public class FSTGenMerger extends FSTGenProcessor {
 			int pairOfImportedSameMember 			= 0;
 			int totalInsertedImports				= importsFromLeft.size() + importsFromRight.size();
 
-			ArrayList<String> membersAnalysed 	= new ArrayList<String>();
-			ArrayList<String> issuedFiles		= new ArrayList<String>();
-			ArrayList<String> logentries 		= new ArrayList<String>();
+			ArrayList<String> membersAnalysed 					= new ArrayList<String>();
+			ArrayList<String> typeAmbiguityCandidateFiles		= new ArrayList<String>();
+			ArrayList<String> logentries 						= new ArrayList<String>();
 
 			while(!importsFromLeft.isEmpty()){
 				String fullLeftImportStatement = importsFromLeft.poll();
@@ -1163,70 +1169,72 @@ public class FSTGenMerger extends FSTGenProcessor {
 								String unmergedFile = leftImportsClass; //or rightImportsClass
 								ArrayList<MergeConflict> mergeConflicts = mapMergeConflicts.get(unmergedFile);
 
-								File revFile 		= new File(currentMergedRevisionFilePath);
-								String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
-								String issuedFile	= expressionval+";"+mergedFolder+unmergedFile;
+								if(null != mergeConflicts){
+									File revFile 		= new File(currentMergedRevisionFilePath);
+									String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
+									String typeAmbiguityCandidateFile	= expressionval+";"+mergedFolder+unmergedFile;
 
-								if(!rightImportStmt.equals(leftImportStmt)){
-									String[] aux = rightImportStmt.split("\\.");
-									String rightImportedMember = aux[aux.length-1];
-									aux = leftImportStmt.split("\\.");
-									String leftImportedMember = aux[aux.length-1];
+									if(!rightImportStmt.equals(leftImportStmt)){
+										String[] aux = rightImportStmt.split("\\.");
+										String rightImportedMember = aux[aux.length-1];
+										aux = leftImportStmt.split("\\.");
+										String leftImportedMember = aux[aux.length-1];
 
 
-									//FIRST CASE: p.* vs q.*
-									if(rightImportedMember.equals("*;") && leftImportedMember.equals("*;")){ 			
-										for(MergeConflict mc : mergeConflicts){
-											if(mc.contains(leftImportStmt, rightImportStmt)){
-												pairOfImportedPackages++;
-												if(!issuedFiles.contains(issuedFile))issuedFiles.add(issuedFile);
+										//FIRST CASE: p.* vs q.*
+										if(rightImportedMember.equals("*;") && leftImportedMember.equals("*;")){ 			
+											for(MergeConflict mc : mergeConflicts){
+												if(mc.contains(leftImportStmt, rightImportStmt)){
+													pairOfImportedPackages++;
+													if(!typeAmbiguityCandidateFiles.contains(typeAmbiguityCandidateFile))typeAmbiguityCandidateFiles.add(typeAmbiguityCandidateFile);
 
-												String logentry = expressionval+";"+(mergedFolder+unmergedFile)+";"+leftImportStmt+";"+rightImportStmt+";"+mc.getBody();
-												logentries.add(logentry);
-												break;
+													String logentry = expressionval+";"+(mergedFolder+unmergedFile)+";"+leftImportStmt+";"+rightImportStmt+";"+mc.getBody();
+													logentries.add(logentry);
+													break;
+												}
 											}
-										}
 
 
 										//SECOND CASE: p.Z vs. q.*
-									} else if(rightImportedMember.equals("*;") || leftImportedMember.equals("*;")) {	
-										for(MergeConflict mc : mergeConflicts){
-											if(mc.contains(leftImportStmt, rightImportStmt)){
-												pairOfImportedPackageAndMember++;
+										} else if(rightImportedMember.equals("*;") || leftImportedMember.equals("*;")) {	
+											for(MergeConflict mc : mergeConflicts){
+												if(mc.contains(leftImportStmt, rightImportStmt)){
+													pairOfImportedPackageAndMember++;
 
-												int rightIndex = rightImportStmt.lastIndexOf(".");
-												int leftIndex  = leftImportStmt.lastIndexOf(".");
-												String rightPackage = rightImportStmt.substring(0, rightIndex);
-												String leftPackage  = leftImportStmt.substring(0, leftIndex);
-												if(!rightPackage.equals(leftPackage)){
-													String memberBeingAnalysed;
-													if(rightImportedMember.equals("*;"))
-														memberBeingAnalysed  = leftImportsClass+":"+leftImportedMember;
-													else
-														memberBeingAnalysed  = rightImportsClass+":"+rightImportedMember;
-													//AVOIDING DUPLICATED ANALYSIS
-													if(!membersAnalysed.contains(memberBeingAnalysed)){ 
-														if(isMemberUsed(rightImportedMember.substring(0,rightImportedMember.length() - 1),leftImportedMember.substring(0,leftImportedMember.length() - 1),leftImportsClass)){
-															pairOfImportedPackageAndMemberUsed++;
+													int rightIndex = rightImportStmt.lastIndexOf(".");
+													int leftIndex  = leftImportStmt.lastIndexOf(".");
+													String rightPackage = rightImportStmt.substring(0, rightIndex);
+													String leftPackage  = leftImportStmt.substring(0, leftIndex);
+													if(!rightPackage.equals(leftPackage)){
+														String memberBeingAnalysed;
+														if(rightImportedMember.equals("*;"))
+															memberBeingAnalysed  = leftImportsClass+":"+leftImportedMember;
+														else
+															memberBeingAnalysed  = rightImportsClass+":"+rightImportedMember;
+														//AVOIDING DUPLICATED ANALYSIS
+														if(!membersAnalysed.contains(memberBeingAnalysed)){ 
+															if(isMemberUsed(rightImportedMember.substring(0,rightImportedMember.length() - 1),leftImportedMember.substring(0,leftImportedMember.length() - 1),leftImportsClass)){
+																pairOfImportedPackageAndMemberUsed++;
+															}
+															membersAnalysed.add(memberBeingAnalysed);
 														}
-														membersAnalysed.add(memberBeingAnalysed);
 													}
+													break;
 												}
-												break;
 											}
-										}
 
 
 										//THIRD CASE: p.Z vs. q.Z	
-									} else if(rightImportedMember.equals(leftImportedMember)) {							
-										for(MergeConflict mc : mergeConflicts){
-											if(mc.contains(leftImportStmt, rightImportStmt)){
-												pairOfImportedSameMember++;
-												if(!issuedFiles.contains(issuedFile))issuedFiles.add(issuedFile);
+										} else if(rightImportedMember.equals(leftImportedMember)) {							
+											for(MergeConflict mc : mergeConflicts){
+												if(mc.contains(leftImportStmt, rightImportStmt)){
+													pairOfImportedSameMember++;
+													if(!typeAmbiguityCandidateFiles.contains(typeAmbiguityCandidateFile))typeAmbiguityCandidateFiles.add(typeAmbiguityCandidateFile);
 
-												String logentry = expressionval+";"+(mergedFolder+unmergedFile)+";"+leftImportStmt+";"+rightImportStmt+";"+mc.getBody();
-												logentries.add(logentry);
-												break;
+													String logentry = expressionval+";"+(mergedFolder+unmergedFile)+";"+leftImportStmt+";"+rightImportStmt+";"+mc.getBody();
+													logentries.add(logentry);
+													break;
+												}
 											}
 										}
 									}
@@ -1239,20 +1247,20 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 			printLogPairOfImportedIssuesCandidateList(logentries);
 
-			printFalseNegativeImportsUnMergeBased(expressionval,
+			printFalseNegativeImportsUnMergeBasedNumbers(expressionval,
 					pairOfImportedPackages, pairOfImportedPackageAndMember,
 					pairOfImportedPackageAndMemberUsed,
 					pairOfImportedSameMember, totalInsertedImports);
 
-			return issuedFiles;
+			return typeAmbiguityCandidateFiles;
 		}catch(Exception e){
 			e.printStackTrace();
-			return null;
+			return new ArrayList<String>();
 		}
 	}
 
 	//FPFN IMPORT ISSUE NEW
-	private void printFalseNegativeImportsUnMergeBased(String expressionval,
+	private void printFalseNegativeImportsUnMergeBasedNumbers(String expressionval,
 			int pairOfImportedPackages, int pairOfImportedPackageAndMember,
 			int pairOfImportedPackageAndMemberUsed,
 			int pairOfImportedSameMember, int totalInsertedImports)
@@ -1543,7 +1551,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1573,7 +1581,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1602,7 +1610,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1694,7 +1702,8 @@ public class FSTGenMerger extends FSTGenProcessor {
 	}
 
 	//FPFN DUPLICATIONS ISSUE NEW
-	private void countAndPrintFalseNegativeDuplications(String expressionval) throws IOException{
+	private List<String> countAndPrintFalseNegativeDuplications(String expressionval) throws IOException{
+		ArrayList<String> duplicationFilesCandidates = new ArrayList<String>();
 		int duplications = 0;
 		for(String unmergedFile : FSTGenMerger.possibleDuplicationsOrAdditions.keySet()){
 			if(isClassAllowed(unmergedFile)){
@@ -1705,15 +1714,22 @@ public class FSTGenMerger extends FSTGenProcessor {
 						String nodeIdentifier1  = getNodeIdentifier(possibleDuplicationNode);
 						String nodeIdentifier2 = getNodeIdentifier(possibleDuplicationNode.getCompatibleNode());
 
-						for(MergeConflict mc : mergeConflicts){
-							if(mc.contains(nodeIdentifier1, nodeIdentifier2) || mc.contains(nodeIdentifier2, nodeIdentifier1)){
-								existsconflictWithNode = true;
-								printConflictingDuplication(expressionval, unmergedFile, nodeIdentifier1, nodeIdentifier2,mc.getBody());
-								break;
-							} 
+						if(null != mergeConflicts){
+							for(MergeConflict mc : mergeConflicts){
+								if(mc.contains(nodeIdentifier1, nodeIdentifier2) || mc.contains(nodeIdentifier2, nodeIdentifier1)){
+									existsconflictWithNode = true;
+									printConflictingDuplication(expressionval, unmergedFile, nodeIdentifier1, nodeIdentifier2,mc.getBody());
+									break;
+								} 
+							}
 						}
 						if(!existsconflictWithNode && !nodeIdentifier1.isEmpty() && !nodeIdentifier2.isEmpty()){//nodeIdentifier isEmpty when not relevant node
 							duplications++;
+
+							File revFile 		= new File(currentMergedRevisionFilePath);
+							String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
+							String duplicationFileCandidate = expressionval+";"+mergedFolder+unmergedFile;
+							if(!duplicationFilesCandidates.contains(duplicationFileCandidate))duplicationFilesCandidates.add(duplicationFileCandidate);
 
 							printNonConflictingDuplication(expressionval, unmergedFile, nodeIdentifier1, nodeIdentifier2);
 						}
@@ -1723,6 +1739,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 		}
 
 		printDuplicationsNumbers(expressionval, duplications);
+		return duplicationFilesCandidates;
 	}
 
 	//FPFN DUPLICATIONS ISSUE NEW
@@ -1741,7 +1758,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 				bw.write(header+"\n");
 			}
 			if(null!=currentMergeResult){
-				currentMergeResult.duplicationIssuesFromParser  = duplications;
+				//currentMergeResult.duplicationIssuesFromParser  = duplications;
 				currentMergeResult.duplicationIssuesFromSsmerge = duplications;
 			}
 			bw.write(expressionval+";"+duplications);
@@ -1749,7 +1766,9 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
+			bw.write(expressionval+";"+0);
+			bw.newLine();
 			bw.close();
 			fw.close();
 		}
