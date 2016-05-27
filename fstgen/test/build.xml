@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ======================================================================
+     13.03.2008 18:00:55
+
+     test_fstgen
+     description
+
+     ckaestne
+     ====================================================================== -->
+
+<project name="test_fstgen" default="all">
+	
+	<!-- ======================================================================
+					PUT HERE THE LANGUAGES TO BE SUPPORTED
+	 ====================================================================== -->
+	<target name="all" depends="testJavaMerge18"></target>
+
+	<!--<target name="testJavaMerge">
+		<antcall target="testGrammar">
+			<param name="language" value="java15_merge" />
+			<param name="parserClass" value="Java15MergeParser" />
+			<param name="mainProduction" value="CompilationUnit" />
+			<param name="directory" value="${fstgen_dir}/src/de/ovgu/cide/fstgen/parsers" />
+			<param name="testFile" value="Test.java" />
+		</antcall>
+	</target>-->
+	
+	<target name="testJavaMerge18">
+		<antcall target="testGrammar">
+			<param name="language" value="java18_merge" />
+			<param name="parserClass" value="Java18MergeParser" />
+			<param name="mainProduction" value="CompilationUnit" />
+			<param name="directory" value="${fstgen_dir}/src/de/ovgu/cide/fstgen/parsers" />
+			<param name="testFile" value="Test.java" />
+		</antcall>
+	</target>
+	
+	<!-- ======================================================================
+							BASIC STUFF, DO NOT EDIT
+	 ====================================================================== -->
+	
+	<echo>${java.class.path}</echo>
+	<eclipse.convertPath resourcePath="fstgen" property="fstgen_dir" />
+	<eclipse.convertPath resourcePath="CIDE2_ast/bin" property="ast_dir" />
+	<eclipse.convertPath resourcePath="CIDE_generateAST/bin" property="astgen_dir" />
+
+	<taskdef name="fstgen" classname="de.ovgu.cide.fstgen.FSTgenTask">
+		<classpath>
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+		</classpath>
+	</taskdef>
+	
+	<taskdef name="jcc" classname="cide.astgen.ant.JavaCCTask">
+		<classpath>
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+		</classpath>
+	</taskdef>
+	
+	<taskdef name="fstgenWithJMLPostprocessing" classname="de.ovgu.cide.fstgen.FSTgenTaskWithJMLPostprocessing">
+		<classpath>
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
+			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+		</classpath>
+	</taskdef>
+
+	<target name="testGrammar" description="--> description">
+		<mkdir dir="${directory}/generated_${language}" />
+		<fstgen grammarFileName="${fstgen_dir}/test/${language}_fst.gcide" targetJJFile="${directory}/generated_${language}/${language}.jj" targetPackage="de.ovgu.cide.fstgen.parsers.generated_${language}" autoSpacingPrettyPrinter="${autoSpacingPrettyPrinter}" />
+		<jcc grammarFileName="${directory}/generated_${language}/${language}.jj" targetDirectory="${directory}/generated_${language}" />
+		<eclipse.refreshLocal resource="fstgen" depth="infinite" />
+		<eclipse.incrementalBuild project="fstgen" />
+		<java classname="de.ovgu.cide.fstgen.GenericParserStarter">
+			<arg value="de.ovgu.cide.fstgen.parsers.generated_${language}.${parserClass}" />
+			<arg value="${mainProduction}" />
+			<arg value="${fstgen_dir}/test/${testFile}" />
+			<classpath>
+				<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
+				<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
+				<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+			</classpath>
+		</java>
+	</target>
+
+	<target name="testGrammarWithPostprocessing" description="Same as testGrammar, but with a postprocessing step">
+		<mkdir dir="${directory}/generated_${language}" />
+		<fstgenWithJMLPostprocessing grammarFileName="${directory}/${language}_fst.gcide" targetJJFile="${directory}/generated_${language}/${language}.jj" targetPackage="generated_${language}" autoSpacingPrettyPrinter="${autoSpacingPrettyPrinter}" />
+		<jcc grammarFileName="${directory}/generated_${language}/${language}.jj" targetDirectory="${directory}/generated_${language}" />
+		<eclipse.refreshLocal resource="fstgen" depth="infinite" />
+		<eclipse.incrementalBuild project="fstgen" />
+		<java classname="de.ovgu.cide.fstgen.GenericPostprocessingParserStarter">
+			<arg value="de.ovgu.cide.fstgen.parsers.generated_${language}.${parserClass}" />
+			<arg value="${mainProduction}" />
+			<arg value="${fstgen_dir}/test/${testFile}" />
+			<arg value="de.ovgu.cide.fstgen.fstProcessing.FSTprocessorJML" />
+			<classpath>
+				<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
+				<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
+				<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+			</classpath>
+		</java>
+	</target>
+</project>
