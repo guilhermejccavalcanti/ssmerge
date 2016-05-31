@@ -23,6 +23,8 @@ public abstract class AbstractFSTPrintVisitor extends FSTVisitor {
 			"code_safe_math", "code_bigint_math", "non_null", "nullable",
 			"nullable_by_default", "extract" };
 
+	public boolean generateSpaces = true;
+
 	public AbstractFSTPrintVisitor(PrintStream out) {
 		this.outputStream = out;
 	}
@@ -34,6 +36,7 @@ public abstract class AbstractFSTPrintVisitor extends FSTVisitor {
 	protected void printToken(String token) {
 		if (tokensInCurrentLine.size() == 0)
 			indentInCurrentLine = indent;
+		//token = token.replaceAll("  ","");
 		tokensInCurrentLine.add(token);
 	}
 
@@ -53,8 +56,6 @@ public abstract class AbstractFSTPrintVisitor extends FSTVisitor {
 		printToken(" ");
 	}
 
-	public boolean generateSpaces = true;
-
 	private void closeLine() {
 		for (int i = 0; i < indentInCurrentLine; i++)
 			print('\t');
@@ -67,7 +68,7 @@ public abstract class AbstractFSTPrintVisitor extends FSTVisitor {
 				if (lastToken != null
 						&& !getNoSpaceAfterToken().contains(lastToken)
 						&& !getNoSpaceBeforeToken().contains(token))
-					print(' ');
+					print("");
 
 			print(token);
 			lastToken = token;
