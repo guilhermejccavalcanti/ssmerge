@@ -15,8 +15,6 @@ public class FilesManager {
 
 	/**
 	 * Fills a list of matched files across the revisions involved in a three-way merge.
-	 * Note that if a corresponding file in one of the revisions is not found, a empty file
-	 * is created to deal three-way merge rules.
 	 * @param leftDir
 	 * @param baseDir
 	 * @param rightDir
@@ -35,7 +33,7 @@ public class FilesManager {
 		LinkedList<String> filesPathFromLeft = new LinkedList<String>(listFilesPath(leftDir));
 		LinkedList<String> filesPathFromRight = new LinkedList<String>(listFilesPath(rightDir));
 
-		// we searches corresponding files begginning from files in the base version, followed by files in left version, and finally in files in right version
+		//searches corresponding files begginning from files in the base version, followed by files in left version, and finally in files in right version
 		searchCorrespondingFiles(leftDir, baseDir, rightDir, tuples, filesPathFromLeft, filesPathFromBase, filesPathFromRight,false,true,false);
 		searchCorrespondingFiles(baseDir, leftDir, rightDir, tuples, filesPathFromBase, filesPathFromLeft, filesPathFromRight,true,false,false);
 		searchCorrespondingFiles(leftDir, rightDir, baseDir, tuples, filesPathFromLeft, filesPathFromRight, filesPathFromBase,false,false,true);
@@ -44,7 +42,7 @@ public class FilesManager {
 	}
 
 	/**
-	 * List all files from a directory and its subdirectories.
+	 * Lists all files path from a directory and its subdirectories.
 	 * @param directory root
 	 * @return list containing all files path found
 	 */
@@ -88,6 +86,11 @@ public class FilesManager {
 			File firstVariantFile = new File(correspondingFirstVariantFilePath);
 			File baseFile = new File(baseFilePath);
 			File secondVariantFile = new File(correspondingSecondVariantFilePath);
+			
+			if(!firstVariantFile.exists())firstVariantFile = null;
+			if(!baseFile.exists())baseFile = null;
+			if(!secondVariantFile.exists())secondVariantFile = null;
+			
 			//to fill the tuples parameters accordingly
 			if(isFirstVariantDriven){
 				FilesTuple tuple = new FilesTuple(baseFile, firstVariantFile, secondVariantFile);

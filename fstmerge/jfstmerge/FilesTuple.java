@@ -66,8 +66,8 @@ public class FilesTuple {
 	
 	@Override
 	public String toString() {
-		return "LEFT: " + leftFile.getAbsolutePath() + "\n" +
-			   "BASE: " + baseFile.getAbsolutePath() + "\n" +
-			   "RIGHT: " + rightFile.getAbsolutePath() ;
+		return "LEFT: " + ((leftFile == null) ? "empty" : leftFile.getAbsolutePath()) + "\n" +
+			   "BASE: " + ((baseFile == null) ? "empty" : baseFile.getAbsolutePath()) + "\n" +
+			   "RIGHT: "+ ((rightFile == null)? "empty" : rightFile.getAbsolutePath()) ;
 	}
 }
