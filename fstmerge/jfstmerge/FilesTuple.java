@@ -18,6 +18,8 @@ public class FilesTuple {
 	private File unstructuredOutput;
 	private File semistructuredOutput;
 	
+	private MergeContext context;
+	
 	public FilesTuple(File left, File base, File right){
 		this.leftFile = left;
 		this.baseFile = base;
@@ -64,6 +66,14 @@ public class FilesTuple {
 		this.semistructuredOutput = semistructuredOutput;
 	}
 	
+	public MergeContext getContext() {
+		return context;
+	}
+
+	public void setContext(MergeContext context) {
+		this.context = context;
+	}
+
 	@Override
 	public String toString() {
 		return "LEFT: " + ((leftFile == null) ? "empty" : leftFile.getAbsolutePath()) + "\n" +

@@ -376,7 +376,7 @@ ImportPackage:
 		<NONE> "." "*" 
 ;
 
-@FSTTerminal(merge="SemanticConflict")
+@FSTTerminal(merge="LineBased")
 Modifiers:
 		( LOOK_AHEAD(2) Modifier )*
 ;
@@ -446,6 +446,7 @@ ClassOrInterface:
 		"class"<NONE> | "interface"<NONE>
 ;
 
+@FSTTerminal(merge="LineBased")
 ExtendsList:
        "extends" &LI ClassOrInterfaceTypeAnnotation ( "," &LI ClassOrInterfaceTypeAnnotation )*
 ;

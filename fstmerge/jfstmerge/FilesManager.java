@@ -11,7 +11,9 @@ import org.apache.commons.io.FilenameUtils;
  * A set of utilities for managing files.
  * @author Guilherme
  */
-public class FilesManager {
+public final class FilesManager {
+
+	private FilesManager(){}
 
 	/**
 	 * Fills a list of matched files across the revisions involved in a three-way merge.
@@ -20,14 +22,14 @@ public class FilesManager {
 	 * @param rightDir
 	 * @return list of tuples of matched files
 	 */
-	public List<FilesTuple> fillFilesTuples(String leftDir, String baseDir, String rightDir){
+	public static List<FilesTuple> fillFilesTuples(String leftDir, String baseDir, String rightDir){
 		//avoiding file systems separator issues
 		leftDir = FilenameUtils.separatorsToSystem(leftDir);
 		baseDir = FilenameUtils.separatorsToSystem(baseDir);
 		rightDir = FilenameUtils.separatorsToSystem(rightDir);
-		
+
 		List<FilesTuple> tuples = new ArrayList<FilesTuple>();
-		
+
 		//using linked lists as queues to avoid duplicates in the forthcoming steps
 		LinkedList<String> filesPathFromBase = new LinkedList<String>(listFilesPath(baseDir));
 		LinkedList<String> filesPathFromLeft = new LinkedList<String>(listFilesPath(leftDir));
@@ -46,7 +48,7 @@ public class FilesManager {
 	 * @param directory root
 	 * @return list containing all files path found
 	 */
-	public List<String> listFilesPath(String directory){
+	public static List<String> listFilesPath(String directory){
 		List<String> allFiles = new ArrayList<String>();
 		File[] fList = (new File(directory)).listFiles();
 		for (File file : fList){
@@ -58,7 +60,7 @@ public class FilesManager {
 		}
 		return allFiles;
 	}
-	
+
 	/**
 	 * Given a main list of files path, searches for corresponding files in other two given files path list.
 	 * @param firstVariantDir root directory 
@@ -69,7 +71,7 @@ public class FilesManager {
 	 * @param filesPathFromFirstVariant
 	 * @param filesPathFromSecondVariant
 	 */
-	private void searchCorrespondingFiles(String firstVariantDir, String mainDir,
+	private static void searchCorrespondingFiles(String firstVariantDir, String mainDir,
 			String secondVariantDir, List<FilesTuple> listOfTuplesToBeFilled,
 			LinkedList<String> filesPathFromFirstVariant,
 			LinkedList<String> filesPathFromMainVariant,
@@ -77,7 +79,7 @@ public class FilesManager {
 			boolean isFirstVariantDriven,
 			boolean isMainVariantDriven,
 			boolean isSecondVariantDriven) {
-		
+
 		while(!filesPathFromMainVariant.isEmpty()){
 			String baseFilePath = filesPathFromMainVariant.poll();
 			String correspondingFirstVariantFilePath = replaceFilePath(baseFilePath,mainDir,firstVariantDir);
@@ -86,11 +88,11 @@ public class FilesManager {
 			File firstVariantFile = new File(correspondingFirstVariantFilePath);
 			File baseFile = new File(baseFilePath);
 			File secondVariantFile = new File(correspondingSecondVariantFilePath);
-			
+
 			if(!firstVariantFile.exists())firstVariantFile = null;
 			if(!baseFile.exists())baseFile = null;
 			if(!secondVariantFile.exists())secondVariantFile = null;
-			
+
 			//to fill the tuples parameters accordingly
 			if(isFirstVariantDriven){
 				FilesTuple tuple = new FilesTuple(baseFile, firstVariantFile, secondVariantFile);
@@ -111,7 +113,7 @@ public class FilesManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * Replace files paths.
 	 * @param filePath
@@ -119,17 +121,17 @@ public class FilesManager {
 	 * @param newPattern
 	 * @return replaced path
 	 */
-	private String replaceFilePath(String filePath, String oldPattern, String newPattern){
+	private static String replaceFilePath(String filePath, String oldPattern, String newPattern){
 		String result = (filePath.replace(oldPattern, newPattern));
 		return result;
-		
+
 	}
-	
-	public static void main(String[] args) {
-		
-		new FilesManager().fillFilesTuples(
+
+	/*	public static void main(String[] args) {
+
+		FilesManager.fillFilesTuples(
 				"C:\\Users\\Guilherme\\Google Drive\\Pós-Graduação\\Pesquisa\\Outros\\running_examples\\examples_nssmerge\\rev2\\left", 
 				"C:/Users/Guilherme/Google Drive/Pós-Graduação/Pesquisa/Outros/running_examples/examples_nssmerge/rev2/base", 
 				"C:/Users/Guilherme/Google Drive\\Pós-Graduação\\Pesquisa\\Outros\\running_examples\\examples_nssmerge\\rev2\\right");
-	}
+	}*/
 }
