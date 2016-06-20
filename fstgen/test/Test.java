@@ -17,7 +17,7 @@ public enum KeyEventSource { // no instances
 public final class Test {
 
 	public void m(){
-		assertU(adoc("id", "1", "text", "\u0633\u0627\u0628"));
+		String nonBmpString = "AB\uD840\uDC00C";
 
 		final class MapResultCallback implements ResultCallback {
 			private Object key;
