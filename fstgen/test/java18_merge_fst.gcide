@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 options {
+  /*UNICODE_INPUT = true;*/
+  /*JAVA_UNICODE_ESCAPE = false;*/
   JAVA_UNICODE_ESCAPE = true;
   ERROR_REPORTING = true;
   STATIC = false;
@@ -66,6 +68,7 @@ SPECIAL_TOKEN :
 | "\n"
 | "\r"
 | "\f"
+/*| "\ufffd"*/
 }
 
 /* COMMENTS */
@@ -422,18 +425,18 @@ TypeDeclaration:
 		";"<NONE> :: EmptyTypeDecl
 		|	
 		@FSTNonTerminal(name="{Id}")
+		LOOK_AHEAD("Modifiers() \"@\" \"interface\"") Modifiers AnnotationTypeDeclaration ::  AnnotationTypeDecl
+		|
+		@FSTNonTerminal(name="{Id}")
 		LOOK_AHEAD(2) Modifiers ClassOrInterfaceDeclaration :: ClassOrInterfaceDecl
 		| 
 		@FSTNonTerminal(name="{Id}")
 		LOOK_AHEAD(2) Modifiers EnumDeclaration :: EnumDecl
-		| 
-		@FSTNonTerminal(name="{Id}")
-		LOOK_AHEAD("Modifiers() \"@\" \"interface\"") Modifiers AnnotationTypeDeclaration ::  AnnotationTypeDecl
 ;
 
 @FSTInline
 ClassOrInterfaceDeclaration:  
-		ClassOrInterface
+		[FinalOrAbstract] ClassOrInterface
 		Id
 		[ TypeParameters ]
 		[ ExtendsList ]
@@ -443,7 +446,7 @@ ClassOrInterfaceDeclaration:
 ;
 
 ClassOrInterface: 
-		"class"<NONE> | "interface"<NONE>
+			"class"<NONE> | "interface"<NONE>
 ;
 
 @FSTTerminal(merge="LineBased")
@@ -470,7 +473,8 @@ EnumDeclaration:
 @FSTInline 
 EnumBody:  
 		"{"
-		&LI EnumConstant ( LOOK_AHEAD(2) "," &LI EnumConstant )* ["," <NONE>]
+		[EnumConstants]
+		["," <NONE>]
 		[ EnumBodyInternal ]
 		"}"
 ;
@@ -478,6 +482,10 @@ EnumBody:
 @FSTNonTerminal(name="")
 EnumBodyInternal: 
 		";" ( ClassOrInterfaceBodyDeclaration )* 
+;
+
+EnumConstants: 
+		&LI EnumConstant ( LOOK_AHEAD(2) "," &LI EnumConstant )* 
 ;
 
 EnumConstant: 
@@ -618,12 +626,11 @@ ConstructorDeclaration:
 ;
 
 ExplicitConstructorInvocation:
-		LOOK_AHEAD("\"this\" Arguments() \";\"")
-		"this" Arguments ";" @!
+		LOOK_AHEAD("\"this\" Arguments() \";\"") "this" Arguments ";" @!
 		|
 		LOOK_AHEAD("TypeArguments() \"this\" Arguments() \";\"") TypeArguments "this" Arguments ";" @!
 		|
-		[ LOOK_AHEAD(2) PrimaryExpression "." ] "super" Arguments ";" @!
+		[LOOK_AHEAD("PrimaryExpression() \".\"") PrimaryExpression "." ] [ TypeArguments ] "super" Arguments ";"	
 ;
 
 Initializer:  
@@ -979,14 +986,13 @@ ExpressionOrBlock:
 ;
 
 PrimarySuffix:
-		LOOK_AHEAD(2)
-		"." "this" <NONE>
+		LOOK_AHEAD(2) "." "this" <NONE>
 		|
-		LOOK_AHEAD(2)
-		"." AllocationExpression
+		LOOK_AHEAD(2) "." "super" <NONE>
 		|
-		LOOK_AHEAD(3)
-		MemberSelector
+		LOOK_AHEAD(2) "." AllocationExpression
+		|
+		LOOK_AHEAD(3) MemberSelector
 		|
 		"[" Expression "]"
 		|
@@ -1107,14 +1113,15 @@ BlockStatement:
 ;
 
 BlockStatementInternal:
-		LOOK_AHEAD(2) AssertStatement
+		LOOK_AHEAD("[Annotation()] [FinalOrAbstract()] \"class\"") 
+		[Annotation] ClassOrInterfaceDeclaration
 		|
 		LOOK_AHEAD(" Modifiers() (FinalOrAnnotation())* Type() <IDENTIFIER>")
 		LocalVariableDeclaration ";"
 		|
-		LOOK_AHEAD(3) Statement
+		LOOK_AHEAD(2) AssertStatement
 		|
-		LOOK_AHEAD("[Annotation()] [FinalOrAbstract()] \"class\"") [Annotation] ClassOrInterfaceDeclaration
+		LOOK_AHEAD(3) Statement
 ;
 
 FinalOrAbstract:

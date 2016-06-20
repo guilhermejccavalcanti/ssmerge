@@ -1,9 +1,14 @@
 package jfstmerge;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -51,14 +56,32 @@ public final class FilesManager {
 	public static List<String> listFilesPath(String directory){
 		List<String> allFiles = new ArrayList<String>();
 		File[] fList = (new File(directory)).listFiles();
-		for (File file : fList){
-			if (file.isFile()){
-				allFiles.add(file.getAbsolutePath());
-			} else if (file.isDirectory()){
-				allFiles.addAll(listFilesPath(file.getAbsolutePath()));
+		if(fList != null){
+			for (File file : fList){
+				if (file.isFile()){
+					allFiles.add(file.getAbsolutePath());
+				} else if (file.isDirectory()){
+					allFiles.addAll(listFilesPath(file.getAbsolutePath()));
+				}
 			}
 		}
 		return allFiles;
+	}
+
+	/**
+	 * Read the content of a given file.
+	 * @param file to be read
+	 * @return string content of the file, or null in case of errors.
+	 */
+	public static String readFileContent(File file){
+		String content = null;
+		try{
+			BufferedReader reader = Files.newBufferedReader(Paths.get(file.getAbsolutePath()));
+			content = reader.lines().collect(Collectors.joining("\n"));
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+		return content;
 	}
 
 	/**
@@ -127,11 +150,51 @@ public final class FilesManager {
 
 	}
 
-	/*	public static void main(String[] args) {
+	/**
+	 * Writes a content in the file of the given file path.
+	 * @param filePath
+	 * @param content
+	 * @return boolean indicating the success of the write operation.
+	 */
+	public static boolean writeContent(String filePath, String content){
+		if(!content.isEmpty()){
+			try{
+				File file = new File(filePath);
+				if(!file.exists()){
+					file.getParentFile().mkdirs();
+					file.createNewFile();
+				}
+				BufferedWriter writer = Files.newBufferedWriter(Paths.get(filePath));
+				writer.write(content);
+				writer.flush();	writer.close();
+			} catch(Exception e){
+				System.err.println(e.toString());
+				return false;
+			}
+		}
+		return true;
+	}
 
-		FilesManager.fillFilesTuples(
-				"C:\\Users\\Guilherme\\Google Drive\\Pós-Graduação\\Pesquisa\\Outros\\running_examples\\examples_nssmerge\\rev2\\left", 
+	/**
+	 * Validate the given files by verifying if they exist.
+	 * In case of non-existing file, the execution terminates.
+	 * @param files to be validated
+	 */
+	public static void validateFiles(File... files) {
+		for(File f : files){
+			if(f!=null && !f.exists()){
+				System.err.println(f.getAbsolutePath()+" does not exists! Try again with a valid file.");
+				System.exit(-1);
+			}
+		}
+	}
+	
+	public static void main(String[] args) {
+
+		/*		FilesManager.fillFilesTuples(
+				"C:\\Users\\Guilherme\\Google Drive\\Pós-Graduação\\Pesquisa\\Outros\\running_examples\\examples_nssmerge\\rev2\\left.java", 
 				"C:/Users/Guilherme/Google Drive/Pós-Graduação/Pesquisa/Outros/running_examples/examples_nssmerge/rev2/base", 
-				"C:/Users/Guilherme/Google Drive\\Pós-Graduação\\Pesquisa\\Outros\\running_examples\\examples_nssmerge\\rev2\\right");
-	}*/
+				"C:/Users/Guilherme/Google Drive\\Pós-Graduação\\Pesquisa\\Outros\\running_examples\\examples_nssmerge\\rev2\\right");*/
+
+	}
 }

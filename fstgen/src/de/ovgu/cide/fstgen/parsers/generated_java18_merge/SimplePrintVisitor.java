@@ -34,10 +34,41 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 			printFeatures(nonTerminal,false);
 			return false;
 		}
+		if (nonTerminal.getType().equals("AnnotationTypeDecl")) {
+			printFeatures(nonTerminal,true);
+			{
+				FSTNode v=getChild(nonTerminal, "Modifiers");
+				if (v!=null) {
+					v.accept(this);
+				}
+			}
+			printToken("@");
+			printToken("interface");
+			{
+				FSTNode v=getChild(nonTerminal, "Id");
+				if (v!=null) {
+					v.accept(this);
+				}
+			}
+			{
+				FSTNode v=getChild(nonTerminal, "AnnotationTypeBody");
+				if (v!=null) {
+					v.accept(this);
+				}
+			}
+			printFeatures(nonTerminal,false);
+			return false;
+		}
 		if (nonTerminal.getType().equals("ClassOrInterfaceDecl")) {
 			printFeatures(nonTerminal,true);
 			{
 				FSTNode v=getChild(nonTerminal, "Modifiers");
+				if (v!=null) {
+					v.accept(this);
+				}
+			}
+			{
+				FSTNode v=getChild(nonTerminal, "FinalOrAbstract");
 				if (v!=null) {
 					v.accept(this);
 				}
@@ -87,7 +118,6 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 		}
 		if (nonTerminal.getType().equals("EnumDecl")) {
 			printFeatures(nonTerminal,true);
-			Iterator<FSTNode> listElements = getChildren(nonTerminal, "EnumConstant").iterator();
 			{
 				FSTNode v=getChild(nonTerminal, "Modifiers");
 				if (v!=null) {
@@ -108,12 +138,11 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 				}
 			}
 			printToken("{");
-			if (listElements.hasNext()) {
-				listElements.next().accept(this);
-			}
-			while (listElements.hasNext()) {
-				printToken(",");
-				listElements.next().accept(this);
+			{
+				FSTNode v=getChild(nonTerminal, "EnumConstants");
+				if (v!=null) {
+					v.accept(this);
+				}
 			}
 			{
 				FSTNode v=getChild(nonTerminal, "EnumBodyInternal");
@@ -122,31 +151,6 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 				}
 			}
 			printToken("}");
-			printFeatures(nonTerminal,false);
-			return false;
-		}
-		if (nonTerminal.getType().equals("AnnotationTypeDecl")) {
-			printFeatures(nonTerminal,true);
-			{
-				FSTNode v=getChild(nonTerminal, "Modifiers");
-				if (v!=null) {
-					v.accept(this);
-				}
-			}
-			printToken("@");
-			printToken("interface");
-			{
-				FSTNode v=getChild(nonTerminal, "Id");
-				if (v!=null) {
-					v.accept(this);
-				}
-			}
-			{
-				FSTNode v=getChild(nonTerminal, "AnnotationTypeBody");
-				if (v!=null) {
-					v.accept(this);
-				}
-			}
 			printFeatures(nonTerminal,false);
 			return false;
 		}
@@ -163,6 +167,12 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 			printFeatures(nonTerminal,true);
 			{
 				FSTNode v=getChild(nonTerminal, "Modifiers");
+				if (v!=null) {
+					v.accept(this);
+				}
+			}
+			{
+				FSTNode v=getChild(nonTerminal, "FinalOrAbstract");
 				if (v!=null) {
 					v.accept(this);
 				}
@@ -212,7 +222,6 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 		}
 		if (nonTerminal.getType().equals("InnerEnumDecl")) {
 			printFeatures(nonTerminal,true);
-			Iterator<FSTNode> listElements = getChildren(nonTerminal, "EnumConstant").iterator();
 			{
 				FSTNode v=getChild(nonTerminal, "Modifiers");
 				if (v!=null) {
@@ -233,12 +242,11 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 				}
 			}
 			printToken("{");
-			if (listElements.hasNext()) {
-				listElements.next().accept(this);
-			}
-			while (listElements.hasNext()) {
-				printToken(",");
-				listElements.next().accept(this);
+			{
+				FSTNode v=getChild(nonTerminal, "EnumConstants");
+				if (v!=null) {
+					v.accept(this);
+				}
 			}
 			{
 				FSTNode v=getChild(nonTerminal, "EnumBodyInternal");
@@ -254,6 +262,12 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 			printFeatures(nonTerminal,true);
 			{
 				FSTNode v=getChild(nonTerminal, "Modifiers");
+				if (v!=null) {
+					v.accept(this);
+				}
+			}
+			{
+				FSTNode v=getChild(nonTerminal, "FinalOrAbstract");
 				if (v!=null) {
 					v.accept(this);
 				}
@@ -303,7 +317,6 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 		}
 		if (nonTerminal.getType().equals("AnnotationInnerEnumDecl")) {
 			printFeatures(nonTerminal,true);
-			Iterator<FSTNode> listElements = getChildren(nonTerminal, "EnumConstant").iterator();
 			{
 				FSTNode v=getChild(nonTerminal, "Modifiers");
 				if (v!=null) {
@@ -324,12 +337,11 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 				}
 			}
 			printToken("{");
-			if (listElements.hasNext()) {
-				listElements.next().accept(this);
-			}
-			while (listElements.hasNext()) {
-				printToken(",");
-				listElements.next().accept(this);
+			{
+				FSTNode v=getChild(nonTerminal, "EnumConstants");
+				if (v!=null) {
+					v.accept(this);
+				}
 			}
 			{
 				FSTNode v=getChild(nonTerminal, "EnumBodyInternal");
@@ -388,6 +400,7 @@ public class SimplePrintVisitor extends AbstractFSTPrintVisitor  {
 		if (type.equals("AnnotationInnerEnumDecl") && expectedType.equals("AnnotationTypeMemberDeclaration")) return true;
 		if (type.equals("Modifier12") && expectedType.equals("Modifier")) return true;
 		if (type.equals("RelationalOp4") && expectedType.equals("RelationalOp")) return true;
+		if (type.equals("PrimarySuffix7") && expectedType.equals("PrimarySuffix")) return true;
 		if (type.equals("CastLOOK_AHEAD3") && expectedType.equals("CastLOOK_AHEAD")) return true;
 		if (type.equals("Statement9") && expectedType.equals("Statement")) return true;
 		if (type.equals("VariableInitializer2") && expectedType.equals("VariableInitializer")) return true;

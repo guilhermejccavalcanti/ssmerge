@@ -34,7 +34,7 @@ public class GenericParserStarter {
 		
 		  String parserClassName = "de.ovgu.cide.fstgen.parsers.generated_java18_merge.Java18MergeParser"; 
 		  String mainProduction = "CompilationUnit";
-		  String targetFileName = "C:\\GGTS\\workspacedev\\ssmerge\\fstgen\\test\\Test.java";
+		  String targetFileName = "C:\\GGTS\\workspace\\ssmerge\\fstgen\\test\\Test.java";
 		  
 		  test(parserClassName,mainProduction,targetFileName);
 

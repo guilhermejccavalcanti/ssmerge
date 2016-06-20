@@ -46,25 +46,25 @@
 
 	<taskdef name="fstgen" classname="de.ovgu.cide.fstgen.FSTgenTask">
 		<classpath>
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/fstgen/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/CIDE2_ast/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/CIDE_generateAST/bin" />
 		</classpath>
 	</taskdef>
 	
 	<taskdef name="jcc" classname="cide.astgen.ant.JavaCCTask">
 		<classpath>
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/fstgen/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/CIDE2_ast/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/CIDE_generateAST/bin" />
 		</classpath>
 	</taskdef>
 	
 	<taskdef name="fstgenWithJMLPostprocessing" classname="de.ovgu.cide.fstgen.FSTgenTaskWithJMLPostprocessing">
 		<classpath>
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
-			<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/fstgen/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/CIDE2_ast/bin" />
+			<pathelement path="C:/GGTS/workspace/ssmerge/CIDE_generateAST/bin" />
 		</classpath>
 	</taskdef>
 
@@ -79,9 +79,9 @@
 			<arg value="${mainProduction}" />
 			<arg value="${fstgen_dir}/test/${testFile}" />
 			<classpath>
-				<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
-				<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
-				<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+				<pathelement path="C:/GGTS/workspace/ssmerge/fstgen/bin" />
+				<pathelement path="C:/GGTS/workspace/ssmerge/CIDE2_ast/bin" />
+				<pathelement path="C:/GGTS/workspace/ssmerge/CIDE_generateAST/bin" />
 			</classpath>
 		</java>
 	</target>
@@ -98,9 +98,9 @@
 			<arg value="${fstgen_dir}/test/${testFile}" />
 			<arg value="de.ovgu.cide.fstgen.fstProcessing.FSTprocessorJML" />
 			<classpath>
-				<pathelement path="C:/GGTS/workspacetest/featurehouse/fstgen/bin" />
-				<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE2_ast/bin" />
-				<pathelement path="C:/GGTS/workspacetest/featurehouse/CIDE_generateAST/bin" />
+				<pathelement path="C:/GGTS/workspace/ssmerge/fstgen/bin" />
+				<pathelement path="C:/GGTS/workspace/ssmerge/CIDE2_ast/bin" />
+				<pathelement path="C:/GGTS/workspace/ssmerge/CIDE_generateAST/bin" />
 			</classpath>
 		</java>
 	</target>

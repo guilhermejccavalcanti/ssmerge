@@ -1,7 +1,38 @@
 /*
  * COMMENTED STUFF MEANS NOT WORKING
  */
-public class Test {
+
+import rx.util.functions.Action1;
+
+@Retention(RUNTIME) @Target(PARAMETER)
+public @interface Header {
+	String value();
+}
+
+public enum KeyEventSource { // no instances
+	;
+	public static Observable<KeyEvent> fromKeyEventsOf(final Component component) {}
+}
+
+public final class Test {
+
+	public void m(){
+		assertU(adoc("id", "1", "text", "\u0633\u0627\u0628"));
+
+		final class MapResultCallback implements ResultCallback {
+			private Object key;
+		}
+	}
+
+	public Test(){
+		super();
+		if (OSerializationSetThreadLocal.check((ODocument) sourceRecord)) {
+			iter = new HashSet<Entry<OIdentifiable, Object>>(ORecordLazySet.super.map.entrySet()).iterator();
+		} else {
+			iter = ORecordLazySet.super.map.entrySet().iterator();
+		}
+		final int index = (hashCode >>> shift) & mask;
+	}
 
 	/*
 	 * JAVA 7 TEST CODE:BEGIN

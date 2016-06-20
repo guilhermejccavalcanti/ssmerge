@@ -71,5 +71,5 @@ public class MergeScenario {
 	public void setTuples(List<FilesTuple> tuples) {
 		this.tuples = tuples;
 	}
-	
+
 }

@@ -14,11 +14,12 @@ public class FilesTuple {
 	private File leftFile;
 	private File baseFile;
 	private File rightFile;
+
+	private MergeContext context;
 	
 	private File unstructuredOutput;
 	private File semistructuredOutput;
 	
-	private MergeContext context;
 	
 	public FilesTuple(File left, File base, File right){
 		this.leftFile = left;
