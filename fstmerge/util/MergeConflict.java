@@ -9,11 +9,12 @@ package util;
 
 public class MergeConflict {
 
-	private String fileName;
-	private String left;
-	private String base;
-	private String right;
-	private String body;
+	public String fileName;
+	public String left;
+	public String base;
+	public String right;
+	public String body;
+	public String bodyInclBase;
 
 	public MergeConflict(String fileName, String left, String base, String right) {
 		this.fileName = fileName;
@@ -36,6 +37,33 @@ public class MergeConflict {
 		this.body 	= conflict;
 	}
 
+	public MergeConflict(String leftConflictingContent,	String rightConflictingContent) {
+		this.left  = leftConflictingContent.split("=======")[0];
+		this.right = rightConflictingContent.split(">>>>>>>")[0];
+
+		//FPFN getting base content
+		if(this.left.contains("|||||||")){
+			String[] temp = this.left.split("\\|\\|\\|\\|\\|\\|\\|");
+			this.left = temp[0];
+			this.base = temp[1].substring(temp[1].indexOf('\n')+1);;
+
+			this.bodyInclBase = 
+					"<<<<<<< MINE\n"+
+							this.left+
+							"||||||| BASE\n"+
+							this.base +
+							"=======\n"+
+							this.right+
+							">>>>>>> YOURS";
+		}
+
+		this.body  ="<<<<<<< MINE\n"+
+				this.left+
+				"=======\n"+
+				this.right+
+				">>>>>>> YOURS";
+	}
+
 	public boolean contains(String leftPattern, String rightPattern){
 		if(leftPattern.isEmpty() || rightPattern.isEmpty()){
 			return false;
@@ -47,7 +75,7 @@ public class MergeConflict {
 			return (lefttrim.contains(leftPattern) && righttrim.contains(rightPattern));
 		}
 	}
-	
+
 	public boolean containsRelaxed(String leftPattern, String rightPattern){
 		if(leftPattern.isEmpty() || rightPattern.isEmpty()){
 			return false;
@@ -56,12 +84,12 @@ public class MergeConflict {
 			rightPattern 	 = (rightPattern.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
 			String lefttrim  = (this.left.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
 			String righttrim = (this.right.replaceAll("\\r\\n|\\r|\\n","")).replaceAll("\\s+","");
-			
+
 			leftPattern 	= Util.removeReservedKeywords(leftPattern);
 			rightPattern 	= Util.removeReservedKeywords(rightPattern);
 			lefttrim 		= Util.removeReservedKeywords(lefttrim);
 			righttrim 		= Util.removeReservedKeywords(righttrim);
-			
+
 			return (lefttrim.contains(leftPattern) && righttrim.contains(rightPattern));
 		}
 	}
@@ -104,6 +132,11 @@ public class MergeConflict {
 
 	public void setBody(String body) {
 		this.body = body;
+	}
+	
+	@Override
+	public String toString() {
+		return this.body;
 	}
 
 }

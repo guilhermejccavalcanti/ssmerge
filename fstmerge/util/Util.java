@@ -10,18 +10,27 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 import merger.FSTGenMerger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.Multimap;
 
@@ -175,6 +184,9 @@ public class Util {
 			String mergedFolder 	= revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
 			File root 	 			= new File(mergedFolder);
 			countConflicts(root,mergeResult);
+
+			countEqualConflicts(root,mergeResult);
+
 			printConflictsReport(revision,mergeResult);
 		}
 		return mergeResult;
@@ -186,6 +198,9 @@ public class Util {
 			String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
 			File root 	 		= new File(mergedFolder);
 			countConflicts(root,mergeResult);
+
+			countEqualConflicts(root,mergeResult);
+
 			printConflictsReport(mergeResult.revision,mergeResult);
 		}
 	}
@@ -243,7 +258,7 @@ public class Util {
 			//if(!line.contains("//") && !line.contains("/*") && line.contains(CONFLICT_HEADER_END)) {
 			if(line.contains(CONFLICT_HEADER_END)) {
 				try{
-					
+
 					textualConflict += "\n";
 
 					String[] splittedConflictBody = aux.splitConflictBody(textualConflict);
@@ -254,7 +269,7 @@ public class Util {
 					//reseting
 					isConflictOpen	= false;
 					textualConflict = "";
-				
+
 				}catch(Exception e){
 					e.printStackTrace();
 					break; //in case of having errors on the file, ignore the rest of the file
@@ -565,15 +580,14 @@ public class Util {
 
 	private static void printConflictsReport(String revision, MergeResult mergeResult) {
 		try {
-			String header = "";
+			/*			String header = "";
 			File file = new File("results/ssmerge_conflicts_report.csv" );
 			if(!file.exists()){
 				file.createNewFile();
-				header = "revision;ssmergeConfs;linedbasedConfs;ssmergeLOC;linebasedLOC;ssmergeFiles;linebasedFiles;semanticConfs;jdimeConfs;jdimeLOC;jdimeFiles\n";
+				header = "revision;ssmergeConfs;linedbasedConfs;ssmergeLOC;linebasedLOC;ssmergeFiles;linebasedFiles;semanticConfs;jdimeConfs;jdimeLOC;jdimeFiles;equalConfs\n";
 			}
 
-			FileWriter fw;
-			fw = new FileWriter(file, true);
+			FileWriter fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
 			if(!header.isEmpty()){
 				bw.write(header);
@@ -581,10 +595,26 @@ public class Util {
 			bw.write(revision+";"+mergeResult.ssmergeConfs+";"+mergeResult.linedbasedConfs+";" +mergeResult.ssmergeLOC+";"
 					+mergeResult.linebasedLOC+";"+mergeResult.ssmergeFiles+";"+mergeResult.linebasedFiles+";"
 					+mergeResult.semanticConfs+";"
-					+mergeResult.jdimeConfs+";"+mergeResult.jdimeLOC+";"+mergeResult.jdimeFiles);
+					+mergeResult.jdimeConfs+";"+mergeResult.jdimeLOC+";"+mergeResult.jdimeFiles+";"+mergeResult.equalConfs);
 			bw.newLine();
 			bw.close();
-			fw.close();		
+			fw.close();		*/
+
+
+			String header = "";
+			File file = new File("results/ssmerge_conflicts_report.csv" );
+			if(!file.exists()){
+				file.createNewFile();
+				header = "revision;ssmergeConfs;linedbasedConfs;ssmergeLOC;linebasedLOC;ssmergeFiles;linebasedFiles;semanticConfs;jdimeConfs;jdimeLOC;jdimeFiles;equalConfs\n";
+			}	
+			PrintWriter pw = new PrintWriter(new FileOutputStream(file, true), true);
+			if(!header.isEmpty()){pw.append(header);}
+			pw.append(revision+";"+mergeResult.ssmergeConfs+";"+mergeResult.linedbasedConfs+";" +mergeResult.ssmergeLOC+";"
+					+mergeResult.linebasedLOC+";"+mergeResult.ssmergeFiles+";"+mergeResult.linebasedFiles+";"
+					+mergeResult.semanticConfs+";"
+					+mergeResult.jdimeConfs+";"+mergeResult.jdimeLOC+";"+mergeResult.jdimeFiles+";"+mergeResult.equalConfs+"\n");
+			pw.flush();pw.close();
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -808,6 +838,244 @@ public class Util {
 		return str;
 	}
 
+	public static double computeStringSimilarity(String first,String second) {
+		@SuppressWarnings("unused")
+		String longer = first, shorter = second;
+		if (first.length() < second.length()) { // longer should always have greater length
+			longer = second; 
+			shorter= first;
+		}
+		int longerLength = longer.length();
+		if (longerLength == 0) {
+			return 1.0; /* both strings are zero length */ 
+		}
+
+		int levenshteinDistance = StringUtils.getLevenshteinDistance(first, second);
+		return ((longerLength - levenshteinDistance)/(double) longerLength);
+
+	}
+
+	public static String readFileContent(File file){
+		//StringBuilder content = new StringBuilder();
+		String content = "";
+		try{
+			BufferedReader reader = Files.newBufferedReader(Paths.get(file.getAbsolutePath()), StandardCharsets.ISO_8859_1);
+			content = reader.lines().collect(Collectors.joining("\n"));
+		}catch(Exception e){
+			//System.err.println(e.getMessage());
+		}
+		return content;
+	}
+
+	public static List<MergeConflict> extractMergeConflicts(String mergedCode){
+		//FPFN uncomment String CONFLICT_HEADER_BEGIN= "<<<<<<< MINE";
+		String CONFLICT_HEADER_BEGIN= "<<<<<<<";
+		String CONFLICT_MID			= "=======";
+		//String CONFLICT_HEADER_END 	= ">>>>>>> YOURS";
+		String CONFLICT_HEADER_END 	= ">>>>>>>";
+		String leftConflictingContent = "";
+		String rightConflictingContent= "";
+		boolean isConflictOpen		  = false;
+		boolean isLeftContent		  = false;
+
+		List<MergeConflict> mergeConflicts = new ArrayList<MergeConflict>();
+		List<String> lines = new ArrayList<>();
+		BufferedReader reader = new BufferedReader(new StringReader(mergedCode));
+		lines = reader.lines().collect(Collectors.toList());
+		Iterator<String> itlines = lines.iterator();
+		while(itlines.hasNext()){
+			String line = itlines.next();
+			if(line.contains(CONFLICT_HEADER_BEGIN)){
+				isConflictOpen = true;
+				isLeftContent  = true;
+			}
+			else if(line.contains(CONFLICT_MID)){
+				leftConflictingContent+=line + "\n";
+				isLeftContent = false;
+			}
+			else if(line.contains(CONFLICT_HEADER_END)) {
+				rightConflictingContent+=line + "\n";
+				MergeConflict mergeConflict = new MergeConflict(leftConflictingContent,rightConflictingContent);
+				mergeConflicts.add(mergeConflict);
+				//reseting the flags
+				isConflictOpen	= false;
+				isLeftContent   = false;
+				leftConflictingContent = "";
+				rightConflictingContent= "";
+			} else {
+				if(isConflictOpen){
+					if(isLeftContent){leftConflictingContent+=line + "\n";
+					}else{rightConflictingContent+=line + "\n";}
+				}
+			}
+		}
+		return mergeConflicts;
+	}
+
+	private static boolean areSimilarConflicts(MergeConflict confa,	MergeConflict confb) {
+		if (null == confa || null == confb)
+			return false;
+		else {
+			String ljfst = getSingleLineContentNoSpacing(confa.left);
+			String rjfst = getSingleLineContentNoSpacing(confa.right);
+
+			String ljdm = getSingleLineContentNoSpacing(confb.left);
+			String rjdm = getSingleLineContentNoSpacing(confb.right);
+
+			return ljfst.equals(ljdm) && rjfst.equals(rjdm);
+		}
+	}
+
+	public static List<String> listJavaSsmergedFilesPath(String directory){
+		List<String> allFiles = new ArrayList<String>();
+		File[] fList = (new File(directory)).listFiles();
+		if(fList != null){
+			for (File file : fList){
+				if (file.isFile() && FilenameUtils.getExtension(file.getAbsolutePath()).equalsIgnoreCase("java")){
+					String unmergedFilePath = file.getAbsolutePath() +".merge";
+					if(new File(unmergedFilePath).exists()){ //only pairs of .java and .java.merge files interest
+						allFiles.add(file.getAbsolutePath());
+					}
+
+				} else if (file.isDirectory()){
+					allFiles.addAll(listJavaSsmergedFilesPath(file.getAbsolutePath()));
+				}
+			}
+		}
+		return allFiles;
+	}
+
+	private static void countEqualConflicts(File mergedFolder, MergeResult mergeResult) {
+		List<String> logEqualConfs 	= new ArrayList<String>();
+		List<String> logDiffeConfsUN= new ArrayList<String>();
+		List<String> logDiffeConfsSS= new ArrayList<String>();
+
+		List<String> mergedFilesPath = listJavaSsmergedFilesPath(mergedFolder.getAbsolutePath());
+
+		//reseting to avoid bias
+		FSTGenMerger.javaFilesConfsSS=0;FSTGenMerger.javaFilesConfsUN=0;mergeResult.ssmergeConfs=0; mergeResult.linedbasedConfs=0; 
+
+		for(String ssmergePath : mergedFilesPath){
+			File ssmerge = new File(ssmergePath);
+			File unmerge = new File(ssmergePath + ".merge");
+			if(ssmerge.exists() && unmerge.exists()){
+				String ssmergecontent = readFileContent(ssmerge);
+				String unmergeconent  = readFileContent(unmerge);
+
+				List<MergeConflict> ssmergeconfs = extractMergeConflicts(ssmergecontent);
+				List<MergeConflict> unmergeconfs = extractMergeConflicts(unmergeconent);
+
+				FSTGenMerger.javaFilesConfsSS 	+= ssmergeconfs.size();
+				FSTGenMerger.javaFilesConfsUN 	+= unmergeconfs.size();
+				mergeResult.ssmergeConfs		+= ssmergeconfs.size();
+				mergeResult.linedbasedConfs 	+= unmergeconfs.size();
+
+				for(MergeConflict unmergeconf : unmergeconfs){
+					boolean foundEqual = false;
+					for(MergeConflict ssmergeconf : ssmergeconfs){
+						if(areSimilarConflicts(ssmergeconf, unmergeconf)){
+							foundEqual = true;
+
+							FSTGenMerger.javaEqualConfs++;
+							mergeResult.equalConfs++;
+
+							//logging
+							String entry = ssmergePath+";"+ssmergeconf.toString()+";"+unmergeconf.toString();
+							logEqualConfs.add(entry);
+
+							break;
+						} 
+					}
+					if(!foundEqual){
+						String entry = ssmergePath+";"+unmergeconf.toString();
+						logDiffeConfsUN.add(entry);
+					}
+				}
+
+				for(MergeConflict ssmergeconf : ssmergeconfs){
+					boolean foundEqual = false;
+					for(MergeConflict unmergeconf : unmergeconfs){
+						if(areSimilarConflicts(ssmergeconf, unmergeconf)){
+							foundEqual = true;
+						} 
+					}
+					if(!foundEqual){
+						String entry = ssmergePath+";"+ssmergeconf.toString();
+						logDiffeConfsSS.add(entry);
+					}
+				}
+			}
+		}
+		printEqualConflictsLog(logEqualConfs);
+		printDifferentConflictsLog(logDiffeConfsUN,false);
+		printDifferentConflictsLog(logDiffeConfsSS,true);
+
+	}
+
+	private static void printEqualConflictsLog(List<String> logentries) {
+		try {
+			/*			String header 	= "";
+			File file 		= new File("results/log_ssmerge_equal_conflicts.csv" );
+			if(!file.exists()){file.createNewFile();header = "file;ssmergeConf;linedbasedConf\n";}
+
+			FileWriter fw 		= new FileWriter(file, true);
+			BufferedWriter bw 	= new BufferedWriter( fw );
+			if(!header.isEmpty()){bw.write(header);}
+
+			for(String entry : logentries){	bw.write(entry);bw.newLine();}
+
+			bw.close();
+			fw.close();		*/
+
+			String header = "";
+			File file = new File("results/log_ssmerge_equal_conflicts.csv" );
+			if(!file.exists()){file.createNewFile();header = "file;ssmergeConf;linedbasedConf\n";}
+			PrintWriter pw = new PrintWriter(new FileOutputStream(file, true), true);
+			try{
+				if(!header.isEmpty()){pw.append(header);}
+				for(String entry : logentries){pw.append(entry + "\n");}
+				pw.flush();pw.close();
+			}finally{
+				try{pw.close();}
+				catch(Exception e){e.printStackTrace();}
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void printDifferentConflictsLog(List<String> logentries, boolean isssmerge) {
+		try {
+			/*			String header 	= "";
+			File file = (!isssmerge)? new File("results/log_ssmerge_different_conflicts_textual.csv" ) : new File("results/log_ssmerge_different_conflicts_ssmerge.csv" ) ;
+			if(!file.exists()){file.createNewFile();header = (!isssmerge)? "file;linedbasedConf\n" : "file;ssmergeConf\n" ;}
+
+			FileWriter fw 		= new FileWriter(file, true);
+			BufferedWriter bw 	= new BufferedWriter( fw );
+			if(!header.isEmpty()){bw.write(header);}
+
+			for(String entry : logentries){	bw.write(entry);bw.newLine();}
+
+			bw.close();
+			fw.close();	*/	
+
+			String header = "";
+			File file = (!isssmerge)? new File("results/log_ssmerge_different_conflicts_textual.csv" ) : new File("results/log_ssmerge_different_conflicts_ssmerge.csv" ) ;
+			if(!file.exists()){file.createNewFile();header = (!isssmerge)? "file;linedbasedConf\n" : "file;ssmergeConf\n" ;}
+			PrintWriter pw = new PrintWriter(new FileOutputStream(file, true), true);
+			try{
+				if(!header.isEmpty()){pw.append(header);}
+				for(String entry : logentries){pw.append(entry + "\n");}
+				pw.flush();pw.close();
+			}finally{
+				try{pw.close();}
+				catch(Exception e){e.printStackTrace();}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	//	public static void main(String[] args) {
 	//

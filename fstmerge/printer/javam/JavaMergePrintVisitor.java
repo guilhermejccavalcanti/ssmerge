@@ -1,7 +1,7 @@
 package printer.javam;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 
 import printer.ArtifactPrintVisitor;
@@ -32,15 +32,19 @@ public class JavaMergePrintVisitor extends ArtifactPrintVisitor {
 				}
 				
 				String fileName = folderPath.getPath() + File.separator + nonterminal.getName();
-
 				SimplePrintVisitor visitor;
 				try {
+					File f = new File(fileName);
+					if(!f.exists()){
+						folderPath.mkdirs();
+						f.createNewFile();
+					}
 					visitor = new SimplePrintVisitor(new PrintStream(fileName));
 					visitor.visit((FSTNonTerminal)child);
 					visitor.getResult();
-				} catch (FileNotFoundException e) {
+				} catch (IOException e) {
 					throw new PrintVisitorException(e.getMessage());
-				}
+				} 
 			}
 		} else {
 			assert(!(node instanceof FSTNonTerminal));

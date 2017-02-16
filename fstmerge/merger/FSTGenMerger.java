@@ -11,15 +11,17 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import modification.traversalLanguageParser.addressManagement.DuplicateFreeLinkedList;
 
-import org.apache.commons.io.FileDeleteStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -46,8 +48,8 @@ import builder.textm.TextMergeBuilder;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-
 import composer.FSTGenProcessor;
+
 import de.ovgu.cide.fstgen.ast.AbstractFSTParser;
 import de.ovgu.cide.fstgen.ast.FSTNode;
 import de.ovgu.cide.fstgen.ast.FSTNonTerminal;
@@ -98,6 +100,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 		javaFilesConfsSS 	= 0;
 		javaFilesConfsUN 	= 0;
 		javaFiles			= 0;
+		javaEqualConfs      = 0;
 
 		badParsedFiles  = 0;
 		totalFiles    	= 0;
@@ -142,11 +145,12 @@ public class FSTGenMerger extends FSTGenProcessor {
 			nonJavaFilesConfs = 0;
 			nonJavaFiles      = 0;
 
-			javaMergedFiles	= 0;
-			javaEqualFiles	= 0;
+			javaMergedFiles	 = 0;
+			javaEqualFiles	 = 0;
 			javaFilesConfsSS = 0;
 			javaFilesConfsUN = 0;
-			javaFiles		= 0;
+			javaFiles		 = 0;
+			javaEqualConfs   = 0;
 
 			badParsedFiles  = 0;
 			totalFiles    	= 0;
@@ -154,10 +158,9 @@ public class FSTGenMerger extends FSTGenProcessor {
 			Util.JDIME_CONFS = 0;
 			Util.JDIME_FILES = 0;
 			Util.JDIME_LOCS = 0;
-			LineBasedMerger.errorFiles.clear();
 			LineBasedMerger.currentFile = "";
+			LineBasedMerger.errorFiles.clear();
 		}catch(Exception e){
-			e.printStackTrace();
 		}
 	}
 
@@ -255,17 +258,26 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 			long t0 = System.currentTimeMillis();
 
-			merger.ignoreEqualFiles(currentMergedRevisionFilePath);
+			/*			merger.ignoreEqualFiles(currentMergedRevisionFilePath);
 
 			merger.ignoreNonJavaFiles(currentMergedRevisionFilePath);
+			 */
+
+			merger.ignoreNonJavaFiles(currentMergedRevisionFilePath);
+
+			merger.ignoreEqualFiles(currentMergedRevisionFilePath);
 
 			FPFNCandidates candidates = merger.run(files);
 
 			Util.countConflicts(currentMergeResult);
 
+			/*UNCOMMENT
 			merger.restoreEqualFiles(currentMergedRevisionFilePath);
+			 */
 
+			/*UNCOMMENT
 			Util.unMergeNonJavaFiles(currentMergedRevisionFilePath);
+			 */
 
 			long tf = System.currentTimeMillis();
 			long mergeTime =  ((tf-t0)/60000);
@@ -385,6 +397,12 @@ public class FSTGenMerger extends FSTGenProcessor {
 			//FPFN
 			FPFNCandidates candidates = new FPFNCandidates();
 
+			/*UNCOMMENT
+			//FPFN ANONYMOUS
+			//countAndPrintFalseNegativeAnonymousBlocks(expressionval);
+			countAndPrintFalseNegativeAnonymousBlocksInclBase(expressionval);
+
+
 			//FPFN CONSECUTIVE LINES
 			printConsecutiveLineNumbers(expressionval);
 
@@ -412,6 +430,11 @@ public class FSTGenMerger extends FSTGenProcessor {
 			//FPFN DUPLICATIONS ISSUE NEW
 			candidates.duplicatedCandidates = countAndPrintFalseNegativeDuplications(expressionval);
 
+			//FPFN ENUM RENAMING
+			printEnumRenamingNumbers(expressionval);
+			printListOfEnumRenamings();
+			 */
+
 			setFstnodes(AbstractFSTParser.fstnodes);
 
 			return candidates;
@@ -424,7 +447,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			//removeBadParsedFiles();
+			removeBadParsedFiles();
 		}
 		return null;
 	}
@@ -432,45 +455,32 @@ public class FSTGenMerger extends FSTGenProcessor {
 	public static void main(String[] args) {
 
 		try {
-			//			FileOutputStream f = new FileOutputStream("console.log");
-			//			LoggerPrintStream tee = new LoggerPrintStream(f, System.out);
-			//			System.setOut(tee);
-			//
+			String line = "C:\\Users\\Guilherme\\Desktop\\Recentes\\reveq\\rev.revisions";
+			FSTGenMerger merger 			= new FSTGenMerger();
+			String file 					= line;
+			currentMergedRevisionFilePath 	= line;
+			String files[] 	= {"--expression",file};
 
-			FileInputStream stream 	 = new FileInputStream("/home/ines/gjcc/fpfnanalysis/samplerpl/java.revisions");
-			InputStreamReader reader = new InputStreamReader(stream);
-			BufferedReader br 	= new BufferedReader(reader);
-			String line 	 	= br.readLine();
-			while(line != null){
-				FSTGenMerger merger 			= new FSTGenMerger();
-				String file 					= line;
-				currentMergedRevisionFilePath 	= line;
-				String files[] 	= {"--expression",file};
+			if(new File(currentMergedRevisionFilePath).exists()){
 
-				if(new File(currentMergedRevisionFilePath).exists()){
+				long t0 = System.currentTimeMillis();
+				//merger.ignoreEqualFiles(currentMergedRevisionFilePath);
+				//merger.ignoreNonJavaFiles(currentMergedRevisionFilePath);
 
-					long t0 = System.currentTimeMillis();
-					merger.ignoreEqualFiles(currentMergedRevisionFilePath);
-					merger.ignoreNonJavaFiles(currentMergedRevisionFilePath);
+				merger.run(files);
 
-					merger.run(files);
+				Util.countConflicts(currentMergedRevisionFilePath);
 
-					Util.countConflicts(currentMergedRevisionFilePath);
+				//merger.restoreEqualFiles(currentMergedRevisionFilePath);
 
-					merger.restoreEqualFiles(currentMergedRevisionFilePath);
+				long tf = System.currentTimeMillis();
+				long mergeTime =  ((tf-t0)/60000);
+				System.out.println("merge time: " + mergeTime + " minutes");
 
-					long tf = System.currentTimeMillis();
-					long mergeTime =  ((tf-t0)/60000);
-					System.out.println("merge time: " + mergeTime + " minutes");
-
-					Util.unMergeNonJavaFiles(currentMergedRevisionFilePath);
-					merger.logFilesStatistics(currentMergedRevisionFilePath,mergeTime);
-					merger.resetFields();
-				}
-
-				line = br.readLine();
+				//Util.unMergeNonJavaFiles(currentMergedRevisionFilePath);
+				merger.logFilesStatistics(currentMergedRevisionFilePath,mergeTime);
+				merger.resetFields();
 			}
-			br.close();
 			System.out.println("finished!!!");
 
 
@@ -787,6 +797,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 	public static int javaFilesConfsSS 	= 0;
 	public static int javaFilesConfsUN 	= 0;
 	public static int javaFiles			= 0;
+	public static int javaEqualConfs	= 0;
 
 	public static int badParsedFiles    = 0;
 	public static int totalFiles    	= 0;
@@ -813,7 +824,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 								for(MergeConflict mc : mergeConflicts){
 									if(conflictContainsNAREO(mc,newLeftNodeContet,editedRightNodeContent, true)){
 										newArtefactReferencingOldOne++;
-
 										String logEntry = expressionval+";"+unmergedFile+";"+newLeftNodeContet+";"+editedRightNodeContent +";"+mc.getBody();
 										logEntries.add(logEntry);
 									}
@@ -842,7 +852,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 								for(MergeConflict mc : mergeConflicts){
 									if(conflictContainsNAREO(mc,newRightNodeContet,editedLeftNodeContent, false)){
 										newArtefactReferencingOldOne++;
-
 										String logEntry = expressionval+";"+unmergedFile+";"+newRightNodeContet+";"+editedLeftNodeContent+";"+mc.getBody();
 										logEntries.add(logEntry);
 									}
@@ -883,7 +892,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 								for(MergeConflict mc : mergeConflicts){
 									if(conflictContainsNAREO(mc,leftMethodDeclaration,rightMethodDeclaration, true)){
 										newMethodsReferencingEditedOnes++;
-
 										String logEntry = expressionval+";"+unmergedFile+";"+leftMethodDeclaration+";"+rightMethodDeclaration+";"+mc.getBody();
 										logEntries.add(logEntry);
 									}
@@ -953,7 +961,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1195,7 +1202,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 											}
 
 
-										//SECOND CASE: p.Z vs. q.*
+											//SECOND CASE: p.Z vs. q.*
 										} else if(rightImportedMember.equals("*;") || leftImportedMember.equals("*;")) {	
 											for(MergeConflict mc : mergeConflicts){
 												if(mc.contains(leftImportStmt, rightImportStmt)){
@@ -1224,7 +1231,7 @@ public class FSTGenMerger extends FSTGenProcessor {
 											}
 
 
-										//THIRD CASE: p.Z vs. q.Z	
+											//THIRD CASE: p.Z vs. q.Z	
 										} else if(rightImportedMember.equals(leftImportedMember)) {							
 											for(MergeConflict mc : mergeConflicts){
 												if(mc.contains(leftImportStmt, rightImportStmt)){
@@ -1254,7 +1261,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 			return typeAmbiguityCandidateFiles;
 		}catch(Exception e){
-			e.printStackTrace();
 			return new ArrayList<String>();
 		}
 	}
@@ -1428,8 +1434,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
-			//bw.write(expressionval+";"+0);
 			bw.write(expressionval+";"+0+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1460,7 +1464,63 @@ public class FSTGenMerger extends FSTGenProcessor {
 			fw.close();
 			return listOfRenames;
 		}catch(Exception e){
-			e.printStackTrace();
+			return new ArrayList<String>();
+		}
+	}
+
+	//FPFN ENUM RENAMING
+	private void printEnumRenamingNumbers(String expressionval) throws IOException {
+		String header = "";
+		File file = new File( "results/ssmerge_enum_renaming_numbers.csv" );
+		if(!file.exists()){
+			file.createNewFile();
+			header = "revision;enumPossibleRenamings;";
+		}
+
+		FileWriter fw = new FileWriter(file, true);
+		BufferedWriter bw = new BufferedWriter( fw );
+		try{
+			if(!header.isEmpty()){
+				bw.write(header+"\n");
+			}
+			bw.write(expressionval+";"+this.mergeVisitor.getLineBasedMerger().countOfEnumsPossibleRenames);
+			if(null!=currentMergeResult){
+				currentMergeResult.enumRenamingConflictsFromSsmerge = this.mergeVisitor.getLineBasedMerger().countOfEnumsPossibleRenames;
+			}
+			bw.newLine();
+			bw.close();
+			fw.close();
+		}catch(Exception e){
+			bw.write(expressionval+";"+0);
+			bw.newLine();
+			bw.close();
+			fw.close();
+		}
+	}
+
+	//FPFN ENUM RENAMING
+	private List<String> printListOfEnumRenamings() throws IOException {
+		try{
+			String header = "";
+			List<String> listOfRenames = new ArrayList<String>((this.mergeVisitor.getLineBasedMerger()).mapEnumRenamingConflicts.values());
+			File file = new File( "results/log_ssmerge_enum_renaming.csv" );
+			if(!file.exists()){
+				file.createNewFile();
+				header="revision;file;enum";
+			}
+			FileWriter fw = new FileWriter(file, true);
+			BufferedWriter bw = new BufferedWriter( fw );
+			if(!header.isEmpty()){
+				bw.write(header+"\n");
+			}
+			for(String e : listOfRenames){
+				bw.write(e);
+				bw.newLine();
+			}
+			bw.close();
+			fw.close();
+			return listOfRenames;
+		}catch(Exception e){
 			return new ArrayList<String>();
 		}
 	}
@@ -1486,7 +1546,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1551,7 +1610,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			//e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1581,7 +1639,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			//e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1610,7 +1667,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			//e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1639,7 +1695,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1666,7 +1721,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
 			bw.close();
 			fw.close();
 		}
@@ -1694,7 +1748,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
 			bw.close();
 			fw.close();
 		}
@@ -1766,7 +1819,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			//e.printStackTrace();
 			bw.write(expressionval+";"+0);
 			bw.newLine();
 			bw.close();
@@ -1793,7 +1845,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
 			bw.close();
 			fw.close();
 		}
@@ -1818,7 +1869,6 @@ public class FSTGenMerger extends FSTGenProcessor {
 			bw.close();
 			fw.close();
 		}catch(Exception e){
-			e.printStackTrace();
 			bw.close();
 			fw.close();
 		}
@@ -1847,6 +1897,165 @@ public class FSTGenMerger extends FSTGenProcessor {
 			identifier = String.valueOf(System.currentTimeMillis()); //RANDOM VALUE TO AVOID MISRESULTS
 		}
 		return identifier;
+	}
+
+	//FPFN ANONYMOUS
+	private void countAndPrintFalseNegativeAnonymousBlocks(String expressionval) {
+		List<String> logEntries 	= new ArrayList<String>();
+		int anonymousBlocks 		= 0;
+		for(String mergedFile : FSTGenMerger.newNodesFromLeft.keySet()){
+			if(isClassAllowed(mergedFile)){
+				Collection<FSTNode> leftNodes = newNodesFromLeft.get(mergedFile);
+				Collection<FSTNode> rightNodes= newNodesFromRight.get(mergedFile);
+				List<FSTNode> leftAnonymousBlocks = leftNodes.stream().filter(p -> p.getType().equals("InitializerDecl")).collect(Collectors.toList());
+				List<FSTNode> rightAnonymousBlocks= rightNodes.stream().filter(p -> p.getType().equals("InitializerDecl")).collect(Collectors.toList());
+				for(FSTNode left : leftAnonymousBlocks){
+					for(FSTNode right : rightAnonymousBlocks){
+						if(areSimilarButNotEqualBlocks(left,right)){
+							anonymousBlocks++;
+							String logentry = expressionval+";"+mergedFile+";"+((FSTTerminal)left).getBody()+";"+((FSTTerminal)right).getBody();
+							logEntries.add(logentry);
+							break;
+						}
+					}
+				}
+			}
+		}
+		printFalseNegativeAnonymousBlocks(expressionval, logEntries, anonymousBlocks);
+	}
+
+	//FPFN ANONYMOUS
+	private void countAndPrintFalseNegativeAnonymousBlocksInclBase(String expressionval) {
+		List<String> logEntries 	= new ArrayList<String>();
+		int anonymousBlocks 		= 0;
+		for(String mergedFile : FSTGenMerger.newNodesFromLeft.keySet()){
+			if(isClassAllowed(mergedFile)){
+				Collection<FSTNode> leftNodes = newNodesFromLeft.get(mergedFile);
+				Collection<FSTNode> rightNodes= newNodesFromRight.get(mergedFile);
+				Collection<FSTNode> baseNodes = nodesFromBase.get(mergedFile);
+
+				List<FSTNode> leftAnonymousBlocks = leftNodes.stream().filter(p -> p.getType().equals("InitializerDecl")).collect(Collectors.toList());
+				List<FSTNode> rightAnonymousBlocks= rightNodes.stream().filter(p -> p.getType().equals("InitializerDecl")).collect(Collectors.toList());
+				List<FSTNode> baseAnonymousBlocks = baseNodes.stream().filter(p -> p.getType().equals("InitializerDecl")).collect(Collectors.toList());
+
+				//filtering LEFT blocks equals to BASE blocks
+				List<FSTNode> leftAnonymousBlocksFiltered = new ArrayList<FSTNode>(); 
+				boolean foundInBase = false;
+				for(FSTNode left : leftAnonymousBlocks){
+					for(FSTNode base : baseAnonymousBlocks){
+						if(areEqualBlocks(left,base)){
+							foundInBase = true;
+						}
+					}
+					if(!foundInBase)leftAnonymousBlocksFiltered.add(left);
+				}
+
+				//filtering RIGHT blocks equals to BASE blocks
+				foundInBase = false;
+				List<FSTNode> rightAnonymousBlocksFiltered = new ArrayList<FSTNode>(); 
+				for(FSTNode right : rightAnonymousBlocks){
+					for(FSTNode base : baseAnonymousBlocks){
+						if(areEqualBlocks(right,base)){
+							foundInBase = true;
+						}
+					}
+					if(!foundInBase)rightAnonymousBlocksFiltered.add(right);
+				}
+
+				//comparing LEFT and RIGHT blocks after excluding BASE blocks
+				for(FSTNode left : leftAnonymousBlocksFiltered){
+					for(FSTNode right : rightAnonymousBlocksFiltered){
+						if(areSimilarButNotEqualBlocks(left,right)){
+							anonymousBlocks++;
+							String logentry = expressionval+";"+mergedFile+";"+((FSTTerminal)left).getBody()+";"+((FSTTerminal)right).getBody();
+							logEntries.add(logentry);
+							break;
+						}
+					}
+				}
+			}
+		}
+		printFalseNegativeAnonymousBlocks(expressionval, logEntries, anonymousBlocks);
+	}
+
+	//FPFN ANONYMOUS
+	private boolean areSimilarButNotEqualBlocks(FSTNode left, FSTNode right) {
+		String leftContent = ((FSTTerminal)left).getBody();
+		String rightContent= ((FSTTerminal)right).getBody();
+		double similarity = Util.computeStringSimilarity(leftContent, rightContent);
+		if(similarity == 1.0){//are equal
+			return false;
+		} else if(similarity > 0.85){ //are similar
+			return true;
+		} else { //are different
+			return false;
+		}
+	}
+
+	//FPFN ANONYMOUS
+	private boolean areEqualBlocks(FSTNode left, FSTNode right) {
+		String leftContent = ((FSTTerminal)left).getBody();
+		String rightContent= ((FSTTerminal)right).getBody();
+		double similarity = Util.computeStringSimilarity(leftContent, rightContent);
+		if(similarity == 1.0){//are equal
+			return true;
+		}  else { //are different
+			return false;
+		}
+	}
+
+	//FPFN ANONYMOUS
+	private void printFalseNegativeAnonymousBlocks(String expressionval, List<String> logEntries,int anonymousBlocks){
+		try{
+			//printing reports
+			String header = "";
+			File file = new File("results/ssmerge_anonymousBlock_numbers.csv");
+			if(!file.exists()){
+				file.createNewFile();
+				header = "revision;anonymousBlocks\n";
+			}
+			FileWriter fw = new FileWriter(file, true);
+			BufferedWriter bw = new BufferedWriter( fw );
+			try{
+				if(!header.isEmpty()){
+					bw.write(header);
+				}
+				bw.write(expressionval+";"+anonymousBlocks);
+				if(null!=currentMergeResult)
+					currentMergeResult.anonymousBlocks = anonymousBlocks;
+				bw.newLine();
+				bw.close();
+				fw.close();
+			}catch(Exception e){
+				bw.write(expressionval+";"+0);
+				bw.newLine();
+				bw.close();
+				fw.close();
+			}
+
+			header = "";
+			file = new File("results/log_ssmerge_anonymousBlock.csv");
+			if(!file.exists()){
+				file.createNewFile();
+				header = "revision;file;leftContent;rightContent\n";
+			}
+			fw = new FileWriter(file, true);
+			bw = new BufferedWriter( fw );
+			try{
+				if(!header.isEmpty()){
+					bw.write(header);
+				}
+				for(String entry : logEntries){
+					bw.write(entry);
+				}
+				bw.newLine();
+				bw.close();
+				fw.close();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}catch(Exception e){
+		}
 	}
 
 	//FPFN
@@ -2033,31 +2242,40 @@ public class FSTGenMerger extends FSTGenProcessor {
 			String baseRevName 	= bufferedReader.readLine();
 			String rightRevName = bufferedReader.readLine();
 			String mergedName 	= revFile.getName().split("\\.")[0];
-			String mergedFolder = revFile.getParentFile() + File.separator + (revFile.getName().split("\\.")[0]);
 			bufferedReader.close();
 
 			//first, search and delete bad parsed files
 			FSTGenProcessor composer = fileLoader.getComposer();
 			DuplicateFreeLinkedList<File> parsedErrors = composer.getErrorFiles();
 			for(File f : parsedErrors){
-				String filePath = f.getAbsolutePath();
-				String fileToDelete = ((filePath.replaceFirst(baseRevName, mergedName)).replaceFirst(leftRevName, mergedName)).replaceFirst(rightRevName, mergedName);
+				//String filePath 	= f.getAbsolutePath();
+				String fileFolder 	= f.getParent();
+				String fileName 	= f.getName();
+				//String fileToDelete = ((filePath.replaceFirst(baseRevName, mergedName)).replaceFirst(leftRevName, mergedName)).replaceFirst(rightRevName, mergedName);
+				String fileToDelete = ((fileFolder.replaceFirst(baseRevName, mergedName)).replaceFirst(leftRevName, mergedName)).replaceFirst(rightRevName, mergedName) + File.separator +fileName;
 				String ssmergeout 	= fileToDelete;
 				String mergout 		= ssmergeout + ".merge";
 				File file = new File(ssmergeout);
-				if(file.exists())
-					FileDeleteStrategy.FORCE.delete(file);
+				if(file.exists()){
+					//FileDeleteStrategy.FORCE.delete(file);
+					file.setWritable(true);
+					file.delete();
+				}
+
 				file = new File(mergout);
-				if(file.exists())
-					FileDeleteStrategy.FORCE.delete(file);
+				if(file.exists()){
+					//FileDeleteStrategy.FORCE.delete(file);
+					file.setWritable(true);
+					file.delete();
+				}
 			}
 
-			//second, delete the output folder if it gets empty
+			/*			//second, delete the output folder if it gets empty
 			File folder = new File(mergedFolder);
 			if(isDirectoryEmpty(folder)){
 				FileUtils.deleteDirectory(new File(mergedFolder));
 				FileDeleteStrategy.FORCE.delete(new File(currentMergedRevisionFilePath));
-			}
+			}*/
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -2288,17 +2506,21 @@ public class FSTGenMerger extends FSTGenProcessor {
 
 	private void logFilesStatistics(String revision, long mergeTime) throws IOException {
 		try{
-			badParsedFiles 	= LineBasedMerger.errorFiles.size();
+			try{
+				badParsedFiles 	= LineBasedMerger.errorFiles.size();
+			}catch(Exception e){
+				badParsedFiles = 0;
+			}
 			javaFiles 	 	= javaMergedFiles + javaEqualFiles + badParsedFiles;
 			nonJavaFiles 	= nonJavaMergedFiles + nonJavaEqualFiles;
 			totalFiles 	 	= javaFiles + nonJavaFiles;
 
-			String header = "";
+			/*			String header = "";
 			File file = new File( "results/log_files_info.csv" );
 			if(!file.exists()){
 				file.createNewFile();
 				header = "revision;totalFiles;nonJavaFiles;nonJavaEqualFiles;nonJavaMergedFiles;nonJavaFilesConfs;javaFiles;"
-						+"javaEqualFiles;javaMergedFiles;badParsedFiles;javaFilesConfsSS;javaFilesConfsUN;mergeTime";
+						+"javaEqualFiles;javaMergedFiles;badParsedFiles;javaFilesConfsSS;javaFilesConfsUN;javaEqualConfs;mergeTime";
 			}
 			FileWriter fw = new FileWriter(file, true);
 			BufferedWriter bw = new BufferedWriter( fw );
@@ -2308,31 +2530,52 @@ public class FSTGenMerger extends FSTGenProcessor {
 				}
 				String entry = revision+";"+totalFiles+";"+nonJavaFiles+";"+nonJavaEqualFiles+";"+nonJavaMergedFiles+";"
 						+nonJavaFilesConfs+";"+javaFiles+";"+javaEqualFiles+";"+javaMergedFiles+";"
-						+badParsedFiles+";"+javaFilesConfsSS+";"+javaFilesConfsUN+";"+mergeTime;
+						+badParsedFiles+";"+javaFilesConfsSS+";"+javaFilesConfsUN+";"+javaEqualConfs+";"+mergeTime;
 				bw.write(entry);
 				bw.newLine();
 				bw.close();
 				fw.close();
 			}catch(Exception e){
-				e.printStackTrace();
 				bw.close();
 				fw.close();
+			}*/
+
+
+
+			String header = "";
+			File file = new File( "results/log_files_info.csv" );
+			if(!file.exists()){
+				file.createNewFile();
+				header = "revision;totalFiles;nonJavaFiles;nonJavaEqualFiles;nonJavaMergedFiles;nonJavaFilesConfs;javaFiles;"
+						+"javaEqualFiles;javaMergedFiles;badParsedFiles;javaFilesConfsSS;javaFilesConfsUN;javaEqualConfs;mergeTime\n";
+			}
+			PrintWriter pw = new PrintWriter(new FileOutputStream(file, true), true);
+			try{
+				if(!header.isEmpty()){pw.append(header);}
+				String entry = revision+";"+totalFiles+";"+nonJavaFiles+";"+nonJavaEqualFiles+";"+nonJavaMergedFiles+";"
+						+nonJavaFilesConfs+";"+javaFiles+";"+javaEqualFiles+";"+javaMergedFiles+";"
+						+badParsedFiles+";"+javaFilesConfsSS+";"+javaFilesConfsUN+";"+javaEqualConfs+";"+mergeTime;
+				pw.append(entry+"\n");
+				pw.flush();pw.close();
+			} finally {
+				try {pw.close();}
+				catch (Exception e) {e.printStackTrace();}
 			}
 
 
 			//clear
-			nonJavaMergedFiles= 0;
-			nonJavaEqualFiles = 0;
-			nonJavaFilesConfs = 0;
-			nonJavaFiles      = 0;
-			javaMergedFiles	= 0;
-			javaEqualFiles	= 0;
-			javaFilesConfsSS = 0;
-			javaFilesConfsUN = 0;
-			javaFiles		= 0;
-			badParsedFiles  = 0;
+			nonJavaMergedFiles	= 0;
+			nonJavaEqualFiles 	= 0;
+			nonJavaFilesConfs 	= 0;
+			nonJavaFiles      	= 0;
+			javaMergedFiles		= 0;
+			javaEqualFiles		= 0;
+			javaFilesConfsSS 	= 0;
+			javaFilesConfsUN 	= 0;
+			javaFiles			= 0;
+			javaEqualConfs		= 0;
+			badParsedFiles  	= 0;
 		}catch(Exception e){
-			e.printStackTrace();
 		}
 	}
 
